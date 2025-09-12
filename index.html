@@ -1,0 +1,314 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <script src="https://www.gstatic.com/firebasejs/10.4.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.4.0/firebase-auth-compat.js"></script>
+
+  <title>LSC All-Stars 2025</title>
+  <!-- Load Roboto font -->
+  <link href="https://fonts.googleapis.com/css2?family=Roboto&display=swap" rel="stylesheet">
+  <style>
+    body {
+      font-family: 'Roboto', sans-serif;
+      background: #f4f4f4;
+      padding: 20px;
+    }
+
+    /* Title banner styling */
+    .title-banner {
+      background-color: #1976D2;
+      color: white;
+      padding: 15px;
+      margin-bottom: 10px;
+      text-align: left;
+    }
+
+    h1 {
+      margin: 0;
+      font-size: 28px;
+    }
+
+    /* Subtitle styling */
+    #subtitle {
+      font-size: 20px;
+      color: #000;
+      text-align: left;
+      margin: 10px auto 20px;
+      max-width: 98%;
+    }
+
+    /* Dropdown styling */
+    #dropdown-container {
+      text-align: left;
+      margin: 10px auto 20px;
+      max-width: 98%;
+      font-size: 16px;
+    }
+
+    #sheet-select {
+      padding: 6px 10px;
+      font-size: 15px;
+      border-radius: 4px;
+      border: 1px solid #ccc;
+      background-color: #1976D2;
+      color: white;
+    }
+
+    table {
+      margin: auto;
+      border-collapse: collapse;
+      width: 98%;
+      background: white;
+      box-shadow: 0 0 10px rgba(0,0,0,0.1);
+      overflow-x: auto;
+    }
+
+    th, td {
+      padding: 8px;
+      border-bottom: 1px solid #ddd;
+      font-size: 13px;
+    }
+
+    th {
+      background-color: #1976D2;
+      color: white;
+      position: sticky;
+      top: 0;
+      text-align: center;
+    }
+
+    tr:hover {
+      background-color: #f1f1f1;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="title-banner">
+    <h1>LSC All-Stars 2025</h1>
+  </div>
+
+  <div id="dropdown-container">
+    <label for="sheet-select"></label>
+    <select id="sheet-select" onchange="handleDropdownChange()">
+      <option value="333final">3x3x3 Cube Finals</option>
+      <option value="333r1">3x3x3 Cube First Round</option>
+    </select>
+  </div>
+
+  <div id="subtitle">Loading sheet...</div>
+
+  <table id="leaderboard">
+    <thead></thead>
+    <tbody></tbody>
+  </table>
+
+  <!-- Login Button -->
+<div style="text-align:right; margin-top:20px;">
+  <button onclick="showLogin()" style="background-color:#1976D2; color:white; border:none; padding:8px 12px; border-radius:4px; font-size:14px;">Login to Edit</button>
+</div>
+
+<!-- Login Panel -->
+<div id="login-panel" style="display:none; margin-top:20px;">
+  <h3>Admin Login</h3>
+  <input type="email" id="email" placeholder="Email"><br>
+  <input type="password" id="password" placeholder="Password"><br>
+  <button onclick="login()">Login</button>
+  <p id="login-status"></p>
+</div>
+
+<!-- Editor Panel -->
+<div id="editor-panel" style="display:none; margin-top:20px;">
+  <h3>Edit Live Results</h3>
+  <table id="edit-table"><thead></thead><tbody></tbody></table>
+  <button onclick="submitEdits()">Submit Changes</button>
+  <p id="submit-status"></p>
+</div>
+
+
+  <script>
+    const firebaseConfig = {
+      apiKey: "AIzaSyBS5u6ySzN4CjrNmWZK3aRjbJ9xz0m46Mo",
+      authDomain: "lsc-cubing-club.firebaseapp.com",
+      projectId: "lsc-cubing-club",
+    };
+    firebase.initializeApp(firebaseConfig);
+    const auth = firebase.auth();
+
+    const sheetLinks = {
+      '333final': 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQWRcvkvgSl6eL7PnSaNDhCpB0jRX_7h49RHk-SWt5mWDGb97LaE2GHLp_Rt58iwAUikl3P0a-CJeDX/pub?gid=0&single=true&output=csv',
+      '333r1': 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQWRcvkvgSl6eL7PnSaNDhCpB0jRX_7h49RHk-SWt5mWDGb97LaE2GHLp_Rt58iwAUikl3P0a-CJeDX/pub?gid=1526266861&single=true&output=csv'
+    };
+
+    let currentSheetKey = '333final';
+    let currentSheetName = '3x3x3 Cube Finals';
+
+    function switchSheet(name, url) {
+      currentSheetName = name;
+      document.getElementById('subtitle').textContent = name;
+      loadSheet(url);
+    }
+
+    function handleDropdownChange() {
+      const select = document.getElementById('sheet-select');
+      const key = select.value;
+      const name = select.options[select.selectedIndex].text;
+      currentSheetKey = key;
+      switchSheet(name, sheetLinks[key]);
+    }
+
+    function loadSheet(csvUrl) {
+      fetch(csvUrl)
+        .then(response => response.text())
+        .then(text => {
+          const rows = text.trim().split('\n').map(row => row.split(','));
+
+          const thead = document.querySelector('#leaderboard thead');
+          const tbody = document.querySelector('#leaderboard tbody');
+
+          thead.innerHTML = '';
+          tbody.innerHTML = '';
+
+          const headers = rows[0].map(h => h.trim());
+          const averageIndex = headers.indexOf("Average");
+
+          const headerRow = document.createElement('tr');
+          headers.forEach(header => {
+            const th = document.createElement('th');
+            th.textContent = header;
+            headerRow.appendChild(th);
+          });
+          thead.appendChild(headerRow);
+
+          rows.slice(1).forEach((row, index) => {
+            const tr = document.createElement('tr');
+
+            row.forEach((cell, cellIndex) => {
+              const td = document.createElement('td');
+              const content = cell?.trim() || '';
+              td.textContent = content;
+
+              const header = headers[cellIndex]?.toLowerCase();
+
+              // Alignment rules
+              if (header === 'rank' || header === 'number') {
+                td.style.textAlign = 'center';
+              } else if (header === 'name') {
+                td.style.textAlign = 'left';
+                td.style.color = '#1976D2'; // blue only
+                td.style.fontWeight = 'normal';
+              } else if (header === 'class') {
+                td.style.textAlign = 'left';
+              } else {
+                td.style.textAlign = 'right';
+              }
+
+              // Highlight top 3 ranks
+              if (index < 3 && cellIndex === 0) {
+                td.style.backgroundColor = '#00e676';
+              }
+
+              // Bold the "Average" column
+              if (cellIndex === averageIndex) {
+                td.style.fontWeight = 'bold';
+              }
+
+              tr.appendChild(td);
+            });
+
+            tbody.appendChild(tr);
+          });
+        })
+        .catch(error => console.error('Error loading leaderboard:', error));
+    }
+
+    setInterval(() => {
+      loadSheet(sheetLinks[currentSheetKey]);
+    }, 30000);
+
+    window.onload = () => {
+      switchSheet(currentSheetName, sheetLinks[currentSheetKey]);
+    };
+
+    function showLogin() {
+        document.getElementById('login-panel').style.display = 'block';
+    }
+
+    function login() {
+        const email = document.getElementById('email').value;
+        const password = document.getElementById('password').value;
+
+        auth.signInWithEmailAndPassword(email, password)
+            .then(() => {
+                document.getElementById('login-status').textContent = "Logged in!";
+                document.getElementById('login-panel').style.display = 'none';
+                document.getElementById('editor-panel').style.display = 'block';
+                loadEditableSheet();
+            })
+            .catch(error => {
+                document.getElementById('login-status').textContent = "Login failed: " + error.message;
+            });
+    }
+
+    function loadEditableSheet() {
+        fetch(sheetLinks[currentSheetKey])
+            .then(res => res.text())
+            .then(text => {
+                const rows = text.trim().split('\n').map(r => r.split(','));
+                const headers = rows[0];
+                const thead = document.querySelector('#edit-table thead');
+                const tbody = document.querySelector('#edit-table tbody');
+
+                thead.innerHTML = '';
+                tbody.innerHTML = '';
+
+                const headerRow = document.createElement('tr');
+                headers.forEach(h => {
+                    const th = document.createElement('th');
+                    th.textContent = h;
+                    headerRow.appendChild(th);
+                });
+                thead.appendChild(headerRow);
+
+                rows.slice(1).forEach(row => {
+                    const tr = document.createElement('tr');
+                    row.forEach(cell => {
+                        const td = document.createElement('td');
+                        const input = document.createElement('input');
+                        input.value = cell.trim();
+                        td.appendChild(input);
+                        tr.appendChild(td);
+                    });
+                    tbody.appendChild(tr);
+                });
+            });
+    }
+
+    function submitEdits() {
+        const table = document.querySelector('#edit-table');
+        const rows = Array.from(table.rows);
+        const data = rows.map(row => {
+            return Array.from(row.cells).map(cell => {
+                const input = cell.querySelector('input');
+                return input ? input.value : cell.textContent;
+            });
+        });
+
+        fetch('https://script.google.com/macros/s/AKfycbzkOSaL02h7GV68iO7J7SyW7mR4V_oBsu5_nA2df307tZrcvdVtLKidGl1zCsuNRMlQ/exec', {
+            method: 'POST',
+            body: JSON.stringify({ data }),
+            headers: { 'Content-Type': 'application/json' }
+        })
+            .then(res => res.text())
+            .then(msg => {
+                document.getElementById('submit-status').textContent = "Submitted: " + msg;
+            })
+            .catch(err => {
+                document.getElementById('submit-status').textContent = "Error: " + err.message;
+            });
+    }
+
+  </script>
+
+</body>
+</html>

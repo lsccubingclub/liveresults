@@ -13,3 +13,5 @@
   from   = "/*"
   to     = "/index.html"
   status = 200
+  
+toml [build] publish = "." # or your public folder functions = "functions"

@@ -424,8 +424,8 @@
     const MASTER_SHEET_ID = '1fjWyEbc7a5A3RjkFm0BEnE_lyHXCa3kYiKRd2IP9j5Q'; // master sheet (competitions/rounds)
     const API_KEY = 'AIzaSyA_4BKwiXfv_T9XhbdenwHuGm0k5uc89S8';             // ← replace if needed
     // Proxies to your Apps Script deployment (you already updated read.js/write.js)
-    const READ_ENDPOINT = '/api/read';
-    const WRITE_ENDPOINT = '/api/write';
+    const READ_ENDPOINT = '/.netlify/functions/read';
+    const WRITE_ENDPOINT = '/.netlify/functions/write';
 
     // ===== State =====
     let masterValues = [];   // A1:Z? matrix from master

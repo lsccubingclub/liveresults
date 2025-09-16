@@ -13,3 +13,7 @@
   from   = "/*"
   to     = "/index.html"
   status = 200
+
+[build]
+  publish   = "."           # where your index.html lives
+  functions = "functions"   # folder Netlify will bundle into Lambdas

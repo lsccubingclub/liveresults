@@ -1,0 +1,3357 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>LSC Cubing Club Live</title>
+  <link
+    rel="icon"
+    type="image/png"
+    sizes="45x45"
+    href="/images/favicon.png"
+  />
+
+  <link href="https://fonts.googleapis.com/css2?family=Roboto&display=swap" rel="stylesheet">
+  <style>
+    html, body {
+      margin: 0;
+      padding: 0;
+    }
+    body { font-family: 'Roboto', sans-serif; background: white; padding: 0; box-sizing: border-box; }
+
+    .logo-badge {
+      position: relative;
+      display: inline-block;
+      line-height: 0;
+    }
+
+    .logo-badge > #logo {
+      position: relative;
+      z-index: 1;
+      display: block;
+      height: 60px;
+      width: auto;
+      transition: height 0.3s ease;
+    }
+
+    #main-header .logo-badge > #logo {
+      height: 55px;
+    }
+
+    #main-header .logo-badge::before {
+      inset: -6px;
+    }
+
+    #ig-icon, #btn-login-top{
+      height: 35px;
+      cursor: pointer;
+    }
+    #btn-signout-top{
+      height: 50px;
+      cursor: pointer;
+    }
+
+    .logo-badge img{
+      height: 50px;
+      margin-left: 6px;
+      cursor: pointer;
+    }
+
+    #main-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      position: sticky;
+      top: 0;
+      left: 0;
+      right: 0;
+      width: 100%;
+      background: #1976D2;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+      transition: all 0.3s ease;
+      box-sizing: border-box;
+      padding: 20px 40px;
+      margin: 0;
+      z-index: 1000;
+    }
+    
+    #main-header {
+      padding: 0px 30px;
+      font-size: 0.6em;
+    }
+
+    #main-header #club-name {
+      font-size: 36px;
+      transition: all 0.3s ease;
+    }
+
+    #main-header #club-name {
+      font-size: 34px;
+      color: white;
+    }
+
+    #view-home #club-name {
+      margin: 0 auto;
+      font-size: 30px;
+      text-align: center;
+      white-space: nowrap;
+    }
+
+    #sidebar-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.45);
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 220ms ease;
+      z-index: 1190;
+    }
+
+    #live-sidebar {
+      position: fixed;
+      top: 0;
+      left: 0;
+      height: 100vh;
+      width: 320px;
+      max-width: 80vw;
+      background: #fff;
+      box-shadow: 0 12px 40px rgba(0,0,0,0.25);
+      transform: translateX(-100%);
+      transition: transform 260ms cubic-bezier(.22,.9,.34,1);
+      z-index: 1200;
+      padding: 12px;
+      overflow: auto;
+      border-radius: 0;
+      box-sizing: border-box;
+    }
+
+    body.sidebar-open #live-sidebar { transform: translateX(0); }
+    body.sidebar-open #sidebar-overlay { opacity: 1; pointer-events: auto; }
+
+    #sidebar-top {
+      display:flex;
+      align-items:center;
+      margin-bottom:12px;
+    }
+    #sidebar-top .sb-btn {
+      flex: 1 1 auto;
+      border: 0px;
+      background: transparent;
+      cursor:pointer;
+    }
+    #sidebar-top .sb-btn:active { transform: translateY(1px); }
+
+    #sidebar-events { display:flex; flex-direction:column; gap:8px; margin-top:8px; }
+    .sidebar-event {
+      display:flex;
+      flex-direction:column;
+      gap:6px;
+      border-radius:8px;
+      border:1px solid #eee;
+      padding:8px;
+      background: white;
+    }
+    .sidebar-event .ev-head {
+      display:flex;
+      align-items:center;
+      gap:10px;
+      cursor:pointer;
+    }
+    .sidebar-event .ev-head .ev-icon {
+      width:36px; height:36px; display:flex; align-items:center; justify-content:center;
+      background:#fff; border-radius:6px; border:1px solid #eee;
+    }
+    .sidebar-event .ev-head .ev-title { font-weight:700; }
+    .sidebar-event .round-list { display:none; margin-top:6px; padding-left:46px; gap:6px; flex-direction:column; }
+    .sidebar-event.open .round-list { display:flex; }
+    .sidebar-event .round-item {
+      padding:6px 8px; border-radius:6px; cursor:pointer; background:transparent; border:1px solid transparent;
+    }
+    .sidebar-event .round-item:hover { background:#fff; border-color:#eee; box-shadow:0 4px 10px rgba(0,0,0,0.04); }
+
+    /* Menu button in header (left) */
+    @media (max-width: 720px) {
+      #live-sidebar { width: 84vw; }
+    }
+
+  </style>
+
+  <script src="https://www.gstatic.com/firebasejs/10.4.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.4.0/firebase-auth-compat.js"></script>
+</head>
+
+<body>
+
+  <header id="main-header">
+    <div id="header-left" style="display:flex; align-items:center; gap:12px;">
+      <!-- menu image button (leftmost) -->
+      <button id="btn-open-sidebar" aria-label="Open menu" class="menu-btn" style="background:none;border:0;padding:0;font-size:x-large;color:white;cursor:pointer; display:none;" >
+        <img id="menu-icon" src="/images/menu_icon.png" alt="menu" style="height:36px;width:36px;display:block;">
+      </button>
+
+      <div class="logo-badge">
+        <a id="club-logo" href="https://lsccubingclub.netlify.app" target="_blank" aria-label="Home">
+          <img src="/images/clublogo.png" alt="Club Logo" />
+        </a>
+      </div>
+    </div>
+
+    <h1 id="club-name">LSC Cubing Club Live</h1>
+
+    <div style ="display:flex;align-items:center;gap:12px;">
+      <a >
+        <img src="/images/instagram_icon.png" alt="Instagram" id="ig-icon" href="https://instagram.com/lsccubingclub" target="_blank" aria-label="Instagram"/>
+      </a>
+      <img src="/images/login_button.png" alt="Login" id="btn-login-top">
+      <img src="/images/signout_button.png" alt="Login" id="btn-signout-top" style="display:none;">
+
+    </div>
+  </header>
+
+
+  <main id = "main" style="max-width:1100px;margin:20px auto;padding:0 16px;box-sizing:border-box;display:none">
+    <div style="background:#fff;border-radius:8px;padding:12px;box-shadow:0 6px 18px rgba(18,38,63,0.04);">
+
+      <div style="display:flex;gap:8px;align-items:center;margin-bottom:12px;">
+        <input id="competitions-search" placeholder="Search competitions (name, venue, year)" style="flex:1;padding:8px 10px;border:1px solid #ddd;border-radius:6px;font-size:0.95rem;">
+      </div>
+
+      <div id="competitions-list" aria-live="polite" style="display:block;">
+        <div style="color:#666">Loading competitions...</div>
+      </div>
+    </div>
+  </main>
+
+  <div id="sidebar-overlay" aria-hidden="true"></div>
+
+  <aside id="live-sidebar" role="dialog" aria-label="Competition menu" aria-hidden="true">
+    <div id="sidebar-top">
+      <button id="sb-back" class="sb-btn" title="Back to competitions"><img src="/images/back_icon_wca.png" alt="Back" style="width:25px;height:25px;object-fit:contain;"></button>
+      <button id="sb-competitors" class="sb-btn" title="Competitors"><img src="/images/persons_icon_wca.png" alt="Competitors" style="width:25px;height:25px;object-fit:contain;"></button>
+      <button id="sb-podiums" class="sb-btn" title="Podiums"><img src="/images/podiums_icon_wca.png" alt="Podiums" style="width:25px;height:25px;object-fit:contain;"></button>
+    </div>
+
+    <div id="sidebar-content">
+      <div id="sidebar-events">
+        <div style="color:#666">Loading events...</div>
+      </div>
+    </div>
+  </aside>
+
+  <main id = "competition-main-page" style = "display:none;"></main>
+  <main id = "leaderboard" style = "display:none;"></main>
+  <main id="edit-round" style="display:none;"></main>
+  <main id = "podiums" style = "display:none;"></main>
+
+  <main id="competitor-list" style="display:none">
+    <div style="max-width:1100px;margin:16px auto;padding:12px;background:#fff;border-radius:8px;box-shadow:0 6px 18px rgba(18,38,63,0.04);">
+      <div style="display:flex;gap:8px;align-items:center;margin-bottom:12px;">
+        <input id="competitors-search" placeholder="Search competitors (name, class, number)" style="flex:1;padding:8px 10px;border:1px solid #ddd;border-radius:6px;font-size:0.95rem;">
+        <button id="competitors-refresh" style="padding:8px 12px;border-radius:6px;border:1px solid #ddd;background:#fff;cursor:pointer;">Refresh</button>
+      </div>
+
+      <div id="competitors-wrap" aria-live="polite" style="min-height:80px;">
+        <div style="color:#666">Loading competitors...</div>
+      </div>
+    </div>
+  </main>
+
+  <main id="competitor-results" style = "display:none;"></main>
+  <main id="login" style="display:none;"></main>
+
+  <script type="module">
+    import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.86.0/+esm';
+
+    let isLoggedIn = false;
+    const firebaseConfig = {
+      apiKey: "AIzaSyDUMb1cAuCzRwDfLipld8YrNX-WG4a7P2s",
+      authDomain: "lsccubingclub-ebd29.firebaseapp.com",
+      projectId: "lsccubingclub-ebd29",
+    };
+    firebase.initializeApp(firebaseConfig);
+    const auth = firebase.auth();
+
+    const EVENT_CODE_TO_NAME = {
+    "333": "3x3x3 Cube",
+    "222": "2x2x2 Cube",
+    "444": "4x4x4 Cube",
+    "555": "5x5x5 Cube",
+    "666": "6x6x6 Cube",
+    "777": "7x7x7 Cube",
+    "333bf": "3x3x3 Blindfolded",
+    "333fm": "3x3x3 Fewest Moves",
+    "333oh": "3x3x3 One-handed",
+    "clock": "Clock",
+    "minx": "Megaminx",
+    "pyram": "Pyraminx",
+    "skewb": "Skewb",
+    "sq1": "Square-1",
+    "444bf": "4x4x4 Blindfolded",
+    "555bf": "5x5x5 Blindfolded",
+    "333mbf": "3x3x3 Multi-Blind"
+    };
+
+    const EVENT_NAME_TO_CODE = Object.fromEntries(
+    Object.entries(EVENT_CODE_TO_NAME).map(([code, name]) => [name.toString().trim().toLowerCase(), code])
+    );
+
+    const ROUND_CODE_TO_NAME = {
+    "f": "Final",
+    "3": "Third Round",
+    "2": "Second Round",
+    "1": "First Round",
+    };
+
+    const ROUND_NAME_TO_CODE = Object.fromEntries(
+    Object.entries(ROUND_CODE_TO_NAME).map(([code, name]) => [name.toString().trim().toLowerCase(), code])
+    );
+
+    const SUPABASE_URL = 'https://bkzosvxbkhzkskaejqcb.supabase.co';
+    const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJrem9zdnhia2h6a3NrYWVqcWNiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjQzOTczMzIsImV4cCI6MjA3OTk3MzMzMn0.iqZZCfEtSdWksHGfbxUAOoaInu6ZpR-7mEIRtmvW9io';
+
+    const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+    const listEl = document.getElementById('competitions-list');
+    const searchEl = document.getElementById('competitions-search');
+
+    let savedPath = '/';
+
+    let __leaderboardChangeChannel = null;
+    let __leaderboardPollInterval = null;
+    let __leaderboardDebounceTimer = null;
+    let __leaderboardCurrentParams = null;
+
+    let __currentLeaderboardSubscription = null;
+
+    let competitionsCache = [];
+
+    async function fetchCompetitions() {
+      listEl.innerHTML = '<div style="color:#666">Loading competitions...</div>';
+      const { data, error } = await supabase
+        .from('competitions')
+        .select('id, name, date, venue, locked, created_at')
+        .order('date', { ascending: false })
+        .order('name', { ascending: true });
+
+      if (error) {
+        console.error('fetchCompetitions error', error);
+        listEl.innerHTML = `<div style="color:#900">Error loading competitions</div>`;
+        return [];
+      }
+
+      competitionsCache = (data || []).map(c => ({
+        id: c.id,
+        name: c.name,
+        date: c.date,
+        venue: c.venue,
+        locked: !!c.locked,
+        created_at: c.created_at
+      }));
+
+      renderCompetitions(competitionsCache);
+      return competitionsCache;
+    }
+
+    /**
+     * Render competitions list into the page.
+     * Clicking an item navigates to /COMPETITION_NAME (URL-encoded slug).
+     */
+    function renderCompetitions(list) {
+      if (!Array.isArray(list) || list.length === 0) {
+        listEl.innerHTML = '<div style="color:#666">No competitions found</div>';
+        return;
+      }
+
+      const frag = document.createDocumentFragment();
+      list.forEach(c => {
+        const div = document.createElement('div');
+        div.className = 'comp-item';
+        div.tabIndex = 0;
+        div.setAttribute('role', 'link');
+        div.style.padding = '10px';
+        div.style.borderBottom = '1px solid #f0f0f0';
+        div.style.cursor = 'pointer';
+
+        const name = document.createElement('div');
+        name.style.fontWeight = 600;
+        name.textContent = c.name;
+
+        const meta = document.createElement('div');
+        meta.style.fontSize = '0.9rem';
+        meta.style.color = '#666';
+        const dateText = c.date ? new Date(c.date).toLocaleDateString() : 'TBA';
+        meta.textContent = `${dateText}${c.venue ? ' · ' + c.venue : ''}`;
+
+        div.appendChild(name);
+        div.appendChild(meta);
+
+        // keyboard accessibility
+        div.addEventListener('keydown', (ev) => {
+          if (ev.key === 'Enter' || ev.key === ' ') {
+            ev.preventDefault();
+            div.click();
+          }
+        });
+
+        frag.appendChild(div);
+      });
+
+      // remove trailing border on last item
+      const container = document.createElement('div');
+      container.appendChild(frag);
+      // replace list
+      listEl.innerHTML = '';
+      // append children from frag
+      while (container.firstChild) {
+        listEl.appendChild(container.firstChild);
+      }
+    }
+
+    /** Filter competitions by query (searches name and venue and year) */
+    function filterCompetitions(q) {
+      const ql = String(q || '').trim().toLowerCase();
+      if (!ql) return competitionsCache;
+      return competitionsCache.filter(c => {
+        const name = (c.name || '').toLowerCase();
+        const venue = (c.venue || '').toLowerCase();
+        const year = c.date ? String(new Date(c.date).getFullYear()) : '';
+        return name.includes(ql) || venue.includes(ql) || year.includes(ql);
+      });
+    }
+
+    // Wire up search input
+    searchEl.addEventListener('input', (e) => {
+      const filtered = filterCompetitions(e.target.value);
+      renderCompetitions(filtered);
+    });
+
+
+    async function renderCompetitionMainPage(compSlug) {
+      const container = document.getElementById('competition-main-page');
+
+      // Clear container and show loading state
+      container.innerHTML = '';
+      container.style.display = ''; // ensure visible
+      const loadingCard = document.createElement('div');
+      loadingCard.style.maxWidth = '1100px';
+      loadingCard.style.margin = '16px auto';
+      loadingCard.style.padding = '12px';
+      loadingCard.style.background = '#fff';
+      loadingCard.style.borderRadius = '8px';
+      loadingCard.style.boxShadow = '0 6px 18px rgba(18,38,63,0.04)';
+      loadingCard.innerHTML = `<div style="color:#666">Loading competition...</div>`;
+      container.appendChild(loadingCard);
+
+      // Normalize incoming slug (it should already be decoded by router)
+      const incoming = String(compSlug || '').trim();
+      if (!incoming) {
+        loadingCard.innerHTML = `<div style="color:#900">Invalid competition slug</div>`;
+        return;
+      }
+
+      const searchName = incoming.replace(/_/g, ' ').trim();
+      let compRow = null;
+      try {
+        const { data: compData, error: compErr } = await supabase
+          .from('competitions')
+          .select('id, name, date, venue, locked')
+          .ilike('name', `%${searchName}%`)
+          .limit(1);
+
+        if (compErr) {
+          console.warn('renderCompetitionMainPage: ilike lookup error', compErr);
+        } else if (compData && compData.length) {
+          compRow = compData[0];
+        }
+      } catch (e) {
+        console.warn('renderCompetitionMainPage: ilike threw', e);
+      }
+
+      if (!compRow) {
+        try {
+          const { data: allComps, error: allErr } = await supabase
+            .from('competitions')
+            .select('id, name, date, venue, locked');
+
+          if (allErr) {
+            console.error('renderCompetitionMainPage: error fetching competitions', allErr);
+            loadingCard.innerHTML = `<div style="color:#900">Error loading competition</div>`;
+            return;
+          }
+
+          const target = slug(searchName);
+          for (const c of (allComps || [])) {
+            if (slug(c.name) === target) {
+              compRow = c;
+              break;
+            }
+          }
+
+          // Looser fallback: match by words
+          if (!compRow) {
+            const words = searchName.split(/\s+/).filter(Boolean).map(w => w.toLowerCase());
+            for (const c of (allComps || [])) {
+              const lname = (c.name || '').toLowerCase();
+              if (words.every(w => lname.includes(w))) {
+                compRow = c;
+                break;
+              }
+            }
+          }
+        } catch (e) {
+          console.error('renderCompetitionMainPage: fallback error', e);
+          loadingCard.innerHTML = `<div style="color:#900">Error loading competition</div>`;
+          return;
+        }
+      }
+
+      if (!compRow) {
+        loadingCard.innerHTML = `<div style="color:#666">Competition not found: ${unslug(incoming)}</div>`;
+        return;
+      }
+
+      // Fetch rounds for this competition
+      let rounds = [];
+      try {
+        const { data: roundsData, error: roundsErr } = await supabase
+          .from('rounds')
+          .select('id, event_id, round_code, format, advance_to_next')
+          .eq('comp_id', compRow.id)
+          .order('id', { ascending: true });
+
+        if (roundsErr) {
+          console.error('renderCompetitionMainPage: error fetching rounds', roundsErr);
+          loadingCard.innerHTML = `<div style="color:#900">Error loading rounds</div>`;
+          return;
+        }
+
+        rounds = (roundsData || []).map(r => ({
+          id: r.id,
+          event_id: r.event_id ? String(r.event_id).trim() : '',
+          round_code: r.round_code ? String(r.round_code).trim() : '',
+        }));
+      } catch (e) {
+        console.error('renderCompetitionMainPage: fetch rounds threw', e);
+        loadingCard.innerHTML = `<div style="color:#900">Error loading rounds</div>`;
+        return;
+      }
+
+      // Build UI
+      container.innerHTML = ''; // clear loading
+
+      // Subtitle
+      const subtitleWrap = document.createElement('div');
+      subtitleWrap.style.maxWidth = '1100px';
+      subtitleWrap.style.margin = '16px auto';
+      subtitleWrap.style.padding = '0 16px';
+      subtitleWrap.style.boxSizing = 'border-box';
+
+      const subtitle = document.createElement('h2');
+      subtitle.textContent = `Welcome to ${unslug(incoming)}!`;
+      subtitle.style.margin = '0 0 12px 0';
+      subtitle.style.color = 'black';
+      subtitle.style.fontSize = '1.5rem';
+      subtitleWrap.appendChild(subtitle);
+
+      container.appendChild(subtitleWrap);
+
+      // Grid wrapper (centered)
+      const gridWrap = document.createElement('div');
+      gridWrap.style.maxWidth = '1100px';
+      gridWrap.style.margin = '0 auto 32px auto';
+      gridWrap.style.padding = '0 16px';
+      gridWrap.style.display = 'flex';
+      gridWrap.style.flexWrap = 'wrap';
+      gridWrap.style.gap = '12px';
+      gridWrap.style.justifyContent = 'center';
+      container.appendChild(gridWrap);
+
+      if (!rounds.length) {
+        const empty = document.createElement('div');
+        empty.textContent = 'No rounds found for this competition';
+        empty.style.color = '#666';
+        empty.style.maxWidth = '600px';
+        empty.style.margin = '8px auto';
+        container.appendChild(empty);
+        return rounds;
+      }
+
+      // Create a card for each round
+      rounds.forEach(r => {
+        const evCode = (r.event_id || '').toString();
+        const evName = EVENT_CODE_TO_NAME[evCode] || (evCode ? evCode : 'Event');
+        const roundLabel = ROUND_CODE_TO_NAME[r.round_code] || (r.round_code ? r.round_code : 'Round');
+
+        const card = document.createElement('button');
+        card.type = 'button';
+        card.style.display = 'flex';
+        card.style.alignItems = 'center';
+        card.style.gap = '12px';
+        card.style.minWidth = '260px';
+        card.style.maxWidth = '420px';
+        card.style.padding = '10px 14px';
+        card.style.borderRadius = '12px';
+        card.style.border = '1px solid #e6e6e6';
+        card.style.background = '#fff';
+        card.style.cursor = 'pointer';
+        card.style.boxShadow = '0 6px 18px rgba(18,38,63,0.04)';
+        card.style.textAlign = 'left';
+        card.style.boxSizing = 'border-box';
+
+        // Icon container (left)
+        const iconWrap = document.createElement('div');
+        iconWrap.style.width = '48px';
+        iconWrap.style.height = '48px';
+        iconWrap.style.flex = '0 0 48px';
+        iconWrap.style.display = 'flex';
+        iconWrap.style.alignItems = 'center';
+        iconWrap.style.justifyContent = 'center';
+        iconWrap.style.borderRadius = '8px';
+        iconWrap.style.background = '#f6f8fb';
+
+        const img = document.createElement('img');
+        // Use /images/EVENTID (user requested). Try common extensions gracefully.
+        // Prefer PNG, fallback to no-ext path.
+        img.src = `/images/event_icons/${evCode}.png`;
+        img.alt = evName;
+        img.style.width = '36px';
+        img.style.height = '36px';
+        img.style.objectFit = 'contain';
+
+        iconWrap.appendChild(img);
+        card.appendChild(iconWrap);
+
+        // Text block
+        const textWrap = document.createElement('div');
+        textWrap.style.display = 'flex';
+        textWrap.style.flexDirection = 'column';
+        textWrap.style.alignItems = 'flex-start';
+        textWrap.style.justifyContent = 'center';
+        textWrap.style.flex = '1 1 auto';
+
+        const title = document.createElement('div');
+        title.textContent = `${evName} - ${roundLabel}`;
+        title.style.fontWeight = '700';
+        title.style.color = 'black';
+        title.style.fontSize = '1.1rem';
+
+        textWrap.appendChild(title);
+        card.appendChild(textWrap);
+
+        const compPathSlug = slug(compRow.name);
+        card.addEventListener('click', () => {
+          const path = `/${encodeURIComponent(compPathSlug)}/${encodeURIComponent(evCode)}/${encodeURIComponent(String(r.id))}`;
+          navigate(path);
+        });
+
+        // keyboard accessibility
+        card.addEventListener('keydown', (ev) => {
+          if (ev.key === 'Enter' || ev.key === ' ') {
+            ev.preventDefault();
+            card.click();
+          }
+        });
+
+        gridWrap.appendChild(card);
+      });
+
+      return rounds;
+    }
+
+
+
+    function showLoginView() {
+      const container = document.getElementById('login');
+      if (!container) {
+        console.warn('showLoginView: #login element not found');
+        return;
+      }
+
+      container.innerHTML = ''; // clear
+      container.style.display = ''; // show
+
+      const overlay = document.createElement('div');
+      overlay.style.position = 'fixed';
+      overlay.style.inset = '0';
+      overlay.style.background = 'rgba(0,0,0,0.45)';
+      overlay.style.display = 'flex';
+      overlay.style.alignItems = 'center';
+      overlay.style.justifyContent = 'center';
+      overlay.style.zIndex = '1300';
+
+      const panel = document.createElement('div');
+      panel.style.width = '100%';
+      panel.style.maxWidth = '420px';
+      panel.style.background = '#fff';
+      panel.style.borderRadius = '10px';
+      panel.style.padding = '20px';
+      panel.style.boxShadow = '0 12px 40px rgba(0,0,0,0.12)';
+      panel.style.boxSizing = 'border-box';
+
+      const title = document.createElement('h2');
+      title.textContent = 'Sign in';
+      title.style.margin = '0 0 12px 0';
+      panel.appendChild(title);
+
+      const info = document.createElement('div');
+      info.textContent = 'Sign in to input live results.';
+      info.style.color = '#666';
+      info.style.marginBottom = '12px';
+      panel.appendChild(info);
+
+      const form = document.createElement('form');
+      form.id = 'login-form';
+      form.addEventListener('submit', (e) => {
+        e.preventDefault();
+        handleLoginSubmit();
+      });
+
+      const emailLabel = document.createElement('label');
+      emailLabel.textContent = 'Email';
+      emailLabel.style.display = 'block';
+      emailLabel.style.marginBottom = '6px';
+      form.appendChild(emailLabel);
+
+      const emailInput = document.createElement('input');
+      emailInput.type = 'email';
+      emailInput.id = 'login-email';
+      emailInput.required = true;
+      emailInput.style.width = '100%';
+      emailInput.style.padding = '8px';
+      emailInput.style.marginBottom = '10px';
+      emailInput.style.border = '1px solid #ddd';
+      emailInput.style.borderRadius = '6px';
+      form.appendChild(emailInput);
+
+      const passLabel = document.createElement('label');
+      passLabel.textContent = 'Password';
+      passLabel.style.display = 'block';
+      passLabel.style.marginBottom = '6px';
+      form.appendChild(passLabel);
+
+      const passInput = document.createElement('input');
+      passInput.type = 'password';
+      passInput.id = 'login-password';
+      passInput.required = true;
+      passInput.style.width = '100%';
+      passInput.style.padding = '8px';
+      passInput.style.marginBottom = '12px';
+      passInput.style.border = '1px solid #ddd';
+      passInput.style.borderRadius = '6px';
+      form.appendChild(passInput);
+
+      const errorDiv = document.createElement('div');
+      errorDiv.id = 'login-error';
+      errorDiv.style.color = '#900';
+      errorDiv.style.minHeight = '18px';
+      errorDiv.style.marginBottom = '8px';
+      form.appendChild(errorDiv);
+
+      const btnRow = document.createElement('div');
+      btnRow.style.display = 'flex';
+      btnRow.style.justifyContent = 'flex-end';
+      btnRow.style.gap = '8px';
+
+      const cancelBtn = document.createElement('button');
+      cancelBtn.type = 'button';
+      cancelBtn.textContent = 'Cancel';
+      cancelBtn.style.cursor = 'pointer';
+      cancelBtn.style.padding = '8px 12px';
+      cancelBtn.style.borderRadius = '6px';
+      cancelBtn.style.border = '1px solid #ddd';
+      cancelBtn.style.background = '#fff';
+      cancelBtn.addEventListener('click', () => {
+        closeLoginView();
+      });
+      btnRow.appendChild(cancelBtn);
+
+      const submitBtn = document.createElement('button');
+      submitBtn.type = 'submit';
+      submitBtn.textContent = 'Sign in';
+      submitBtn.style.cursor = 'pointer';
+      submitBtn.style.padding = '8px 12px';
+      submitBtn.style.borderRadius = '6px';
+      submitBtn.style.border = '0';
+      submitBtn.style.background = '#1976D2';
+      submitBtn.style.color = '#fff';
+      btnRow.appendChild(submitBtn);
+
+      form.appendChild(btnRow);
+      panel.appendChild(form);
+      overlay.appendChild(panel);
+      container.appendChild(overlay);
+
+      // focus email
+      setTimeout(() => {
+        const e = document.getElementById('login-email');
+        if (e) e.focus();
+      }, 50);
+    }
+
+    function closeLoginView() {
+      const container = document.getElementById('login');
+      if (!container) return;
+      container.innerHTML = '';
+      container.style.display = 'none';
+      navigate('/');
+    }
+
+    async function handleLoginSubmit() {
+      const email = (document.getElementById('login-email') || {}).value || '';
+      const password = (document.getElementById('login-password') || {}).value || '';
+      const errEl = document.getElementById('login-error');
+      if (errEl) errEl.textContent = '';
+      if (!email || !password) {
+        if (errEl) errEl.textContent = 'Email and password are required.';
+        return;
+      }
+      try {
+        // use auth (const auth = firebase.auth()) that you already created
+        await auth.signInWithEmailAndPassword(email, password);
+        // success: close view, update UI
+        closeLoginView();
+        isLoggedIn = true;
+        updateAuthStateUI();
+        window.alert(`Signed in successfully as ${email}`);
+        navigate(savedPath || '/');
+      } catch (err) {
+        console.error('login error', err);
+        if (errEl) errEl.textContent = 'Invalid email or password.';
+      }
+    }
+
+    async function signOutCurrentUser() {
+      try {
+        await auth.signOut();
+        isLoggedIn = false;
+        updateAuthStateUI();
+        window.alert('Signed out successfully.');
+      } catch (err) {
+        console.error('signOut error', err);
+      }
+    }
+
+    function updateAuthStateUI() {
+      const loginBtn = document.getElementById('btn-login-top');
+      const signoutBtn = document.getElementById('btn-signout-top');
+      const user = auth.currentUser;
+      if (user) {
+        isLoggedIn = true;
+        if (loginBtn) loginBtn.style.display = 'none';
+        if (signoutBtn) signoutBtn.style.display = (isMobileView()) ? 'none' : '';
+      } else {
+        isLoggedIn = false;
+        if (loginBtn) loginBtn.style.display = (isMobileView()) ? 'none' : '';
+        if (signoutBtn) signoutBtn.style.display = 'none';
+      }
+      const inputLiveResultsBtn = document.getElementById('btn-input-live-results');
+      if (inputLiveResultsBtn) {
+        inputLiveResultsBtn.style.display = isLoggedIn ? '' : 'none';
+      }
+    }
+
+    function initAuthListener() {
+      if (!auth || !auth.onAuthStateChanged) {
+        console.warn('Firebase auth not available');
+        return;
+      }
+      auth.onAuthStateChanged(user => {
+        isLoggedIn = !!user;
+        updateAuthStateUI();
+      });
+    }
+
+    function initLoginButtons() {
+      const loginBtn = document.getElementById('btn-login-top');
+      const signoutBtn = document.getElementById('btn-signout-top');
+      if (loginBtn) loginBtn.addEventListener('click', (e) => {
+        e.preventDefault();
+        savedPath = location.pathname;
+        navigate('/login');
+      });
+      if (signoutBtn) signoutBtn.addEventListener('click', (e) => {
+        e.preventDefault();
+        signOutCurrentUser();
+      });
+    }
+
+    initAuthListener();
+    initLoginButtons();
+
+
+    // Simple mobile detection
+    function isMobileView() {
+      return window.innerWidth <= 640; // tweak breakpoint as needed
+    }
+
+    // Debounce helper
+    function debounce(fn, wait = 200) {
+      let t;
+      return (...args) => {
+        clearTimeout(t);
+        t = setTimeout(() => fn(...args), wait);
+      };
+    }
+
+    // Modal overlay for mobile detail box
+    // Modal overlay for mobile detail box (robust event wiring)
+    (function setupMobileModal() {
+      if (document.getElementById('mobile-detail-overlay')) return;
+
+      const overlay = document.createElement('div');
+      overlay.id = 'mobile-detail-overlay';
+      overlay.style.position = 'fixed';
+      overlay.style.inset = '0';
+      overlay.style.background = 'rgba(0,0,0,0.5)';
+      overlay.style.display = 'none';
+      overlay.style.zIndex = '9999';
+      overlay.style.alignItems = 'center';
+      overlay.style.justifyContent = 'center';
+      overlay.style.padding = '20px';
+      overlay.style.boxSizing = 'border-box';
+
+      const box = document.createElement('div');
+      box.id = 'mobile-detail-box';
+      box.style.maxWidth = '520px';
+      box.style.width = '100%';
+      box.style.background = '#fff';
+      box.style.borderRadius = '10px';
+      box.style.padding = '16px';
+      box.style.boxSizing = 'border-box';
+      box.style.boxShadow = '0 10px 30px rgba(0,0,0,0.2)';
+      box.style.overflowY = 'auto';
+      box.style.maxHeight = '90vh';
+      overlay.appendChild(box);
+
+      // close when clicking outside box
+      overlay.addEventListener('click', (e) => {
+        if (e.target === overlay) closeMobileDetail();
+      });
+
+      document.body.appendChild(overlay);
+
+      // helper to attach data-nav handlers inside the modal
+      function attachNavHandlers() {
+        // find anchors with data-nav inside the box
+        const anchors = box.querySelectorAll('a[data-nav]');
+        anchors.forEach(a => {
+          // remove any previous listener marker to avoid duplicates
+          if (a.__mobileNavAttached) return;
+          a.__mobileNavAttached = true;
+          a.addEventListener('click', (ev) => {
+            ev.preventDefault();
+            const path = a.getAttribute('data-nav');
+            try {
+              // close modal first so navigation view isn't blocked by overlay
+              closeMobileDetail();
+            } catch (e) { /* ignore */ }
+            try {
+              // call your navigate function (must exist in scope)
+              if (typeof navigate === 'function') navigate(path);
+              else window.location.href = path; // fallback
+            } catch (err) {
+              // fallback to location change if navigate isn't available
+              try { window.location.href = path; } catch (e) {}
+            }
+          });
+        });
+      }
+
+      // expose show/close functions
+      window.showMobileDetail = function (htmlContent) {
+        box.innerHTML = htmlContent || '';
+        // attach handlers after content inserted
+        attachNavHandlers();
+        overlay.style.display = 'flex';
+        document.body.style.overflow = 'hidden';
+      };
+
+      window.closeMobileDetail = function () {
+        overlay.style.display = 'none';
+        document.body.style.overflow = '';
+        // clear content to avoid stale handlers
+        box.innerHTML = '';
+      };
+    })();
+
+
+    // Re-render current view when switching between mobile/desktop
+    const __mobileResizeHandler = debounce(() => {
+      try {
+        const route = getRoute(location.pathname || '/');
+        if (!route) return;
+        // Only re-render these views
+        if (route.view === 'leaderboard') {
+          renderLeaderboard({ compSlug: route.compSlug, eventId: route.eventId, roundId: route.roundId }).catch(()=>{});
+        } else if (route.view === 'podiums') {
+          renderPodiums(route.compSlug).catch(()=>{});
+        } else if (route.view === 'competitor-results') {
+          renderCompetitorResults(route.compSlug, route.competitorName).catch(()=>{});
+        }
+      } catch (e) { /* ignore */ }
+    }, 300);
+
+    window.addEventListener('resize', __mobileResizeHandler);
+
+
+    function csToDisplay(cs) {
+      if (cs === null || cs === undefined || cs === '') return '';
+      if (cs === -1) return 'DNF';
+      if (cs === -2) return 'DNS';
+      const n = Number(cs);
+      if (!Number.isFinite(n)) return String(cs);
+      const sec = n / 100.0;
+      if (sec >= 60) {
+        const mins = Math.floor(sec / 60);
+        const secs = sec - mins * 60;
+        const secsWhole = Math.floor(secs);
+        const secsFrac = Math.round((secs - secsWhole) * 100);
+        return `${mins}:${String(secsWhole).padStart(2,'0')}.${String(secsFrac).padStart(2,'0')}`;
+      } else {
+        return sec.toFixed(2);
+      }
+    }
+
+    function parseTimeToCentiseconds(input) {
+      if (input === null || input === undefined) return null;
+      const s = String(input).trim();
+      if (s === '') return null;
+      const up = s.toUpperCase();
+      if (up === 'DNF') return -1;
+      if (up === 'DNS') return -2;
+
+      // mm:ss.xx or m:ss.xx
+      const colonMatch = s.match(/^(\d+):(\d+(?:\.\d+)?)$/);
+      if (colonMatch) {
+        const mins = Number(colonMatch[1]);
+        const secs = Number(colonMatch[2]);
+        if (!Number.isFinite(mins) || !Number.isFinite(secs)) return null;
+        return Math.round((mins * 60 + secs) * 100);
+      }
+
+      // plain seconds with optional decimal
+      const n = Number(s);
+      if (!Number.isFinite(n)) return null;
+      return Math.round(n * 100);
+    }
+
+    function computeBest(attempts) {
+      const numeric = attempts.filter(a => a !== null && a !== undefined && a !== '' && a !== -1 && a !== -2).map(Number);
+      if (numeric.length > 0) return Math.min(...numeric);
+      const hasDnf = attempts.some(a => a === -1 || a === -2);
+      if (hasDnf) return -1;
+      return null;
+    }
+
+    function compute_ao5(attempts) {
+      const present = attempts.filter(a => a !== null && a !== undefined && a !== '');
+      if (present.length !== 5) return null;
+      const dnfs = attempts.filter(a => a === -1 || a === -2).length;
+      if (dnfs > 1) return -1;
+      const values = attempts.map(a => (a === -1 || a === -2) ? Infinity : Number(a));
+      let minIdx = 0, maxIdx = 0;
+      for (let i = 1; i < values.length; i++) {
+        if (values[i] < values[minIdx]) minIdx = i;
+        if (values[i] > values[maxIdx]) maxIdx = i;
+      }
+      const keep = [];
+      for (let i = 0; i < values.length; i++) {
+        if (i === minIdx || i === maxIdx) continue;
+        keep.push(values[i]);
+      }
+      if (keep.some(v => !Number.isFinite(v))) return -1;
+      const sum = keep.reduce((s, x) => s + x, 0);
+      const avg = Math.round((sum / keep.length) * 100) / 100;
+      return avg;
+    }
+
+    function compute_mo3(attempts) {
+      const present = attempts.filter(a => a !== null && a !== undefined && a !== '');
+      if (present.length !== 3) return null;
+      if (attempts.some(a => a === -1 || a === -2)) return -1;
+      const sum = present.reduce((s, x) => s + Number(x), 0);
+      const mean = Math.round((sum / 3) * 100) / 100;
+      return mean;
+    }    
+
+    function escapeHtml(s) {
+      if (s === null || s === undefined) return '';
+      return String(s).replace(/[&<>"']/g, (m) => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
+    }
+
+    async function renderLeaderboard(params = {}) {
+      const { compSlug, eventId, roundId } = params || {};
+      const container = document.getElementById('leaderboard');
+      if (!container) {
+        console.warn('renderLeaderboard: #leaderboard element not found');
+        return;
+      }
+
+      const mobile = isMobileView();
+
+      // Clear previous content and subscription
+      container.innerHTML = '';
+      if (__currentLeaderboardSubscription && typeof __currentLeaderboardSubscription.unsubscribe === 'function') {
+        try { __currentLeaderboardSubscription.unsubscribe(); } catch (e) { /* ignore */ }
+        __currentLeaderboardSubscription = null;
+      }
+
+      // Loading UI
+      const loading = document.createElement('div');
+      loading.style.maxWidth = '1100px';
+      loading.style.margin = '16px auto';
+      loading.style.padding = '12px';
+      loading.style.background = '#fff';
+      loading.style.borderRadius = '8px';
+      loading.style.boxShadow = '0 6px 18px rgba(18,38,63,0.04)';
+      loading.innerHTML = `<div style="color:#666">Loading...</div>`;
+      container.appendChild(loading);
+
+      // Resolve round metadata
+      let roundRow = null;
+      let compRowName = null;
+      try {
+        if (roundId) {
+          const { data, error } = await supabase
+            .from('rounds')
+            .select('id, comp_id, event_id, round_code, format')
+            .eq('id', Number(roundId))
+            .limit(1);
+          if (error) throw error;
+          roundRow = (data && data[0]) || null;
+        }
+        if (!roundRow && compSlug && eventId && roundId) {
+          const searchName = normalizeCompSlug(compSlug);
+          const { data: comps } = await supabase.from('competitions').select('id,name').ilike('name', `%${searchName}%`).limit(1);
+          const comp = comps && comps[0];
+          if (comp) {
+            const { data: rounds } = await supabase
+              .from('rounds')
+              .select('id, comp_id, event_id, round_code, format')
+              .eq('comp_id', comp.id)
+              .eq('event_id', String(eventId))
+              .limit(1);
+            roundRow = rounds && rounds[0];
+            compRowName = comp.name;
+          }
+        }
+        if (!roundRow) {
+          loading.innerHTML = `<div style="color:#900">Round not found</div>`;
+          return;
+        }
+        if (!compRowName && roundRow && roundRow.comp_id) {
+          try {
+            const { data: compData } = await supabase.from('competitions').select('name').eq('id', roundRow.comp_id).limit(1);
+            if (compData && compData[0]) compRowName = compData[0].name;
+          } catch (e) { /* ignore */ }
+        }
+      } catch (err) {
+        console.error('renderLeaderboard: error resolving round', err);
+        loading.innerHTML = `<div style="color:#900">Error loading round</div>`;
+        return;
+      }
+
+      // Determine format and attemptCount
+      const format = (roundRow.format || '').toLowerCase();
+      let attemptCount = 5;
+      if (format === 'mo3' || format === 'bo3') attemptCount = 3;
+      else if (format === 'bo2') attemptCount = 2;
+      else if (format === 'bo1') attemptCount = 1;
+
+      // Fetch round_results
+      let rows = [];
+      try {
+        const { data, error } = await supabase
+          .from('round_results')
+          .select('id, round_id, competitor_name, competitor_id, class, number, attempt1, attempt2, attempt3, attempt4, attempt5, created_at')
+          .eq('round_id', roundRow.id);
+
+        if (error) throw error;
+        rows = (data || []).map(r => ({
+          id: r.id,
+          competitor_name: r.competitor_name,
+          competitor_id: r.competitor_id,
+          class: r.class ?? '',
+          number: r.number ?? '',
+          attempts: [
+            r.attempt1 ?? null,
+            r.attempt2 ?? null,
+            r.attempt3 ?? null,
+            r.attempt4 ?? null,
+            r.attempt5 ?? null
+          ],
+          created_at: r.created_at
+        }));
+      } catch (err) {
+        console.error('renderLeaderboard: error fetching results', err);
+        loading.innerHTML = `<div style="color:#900">Error loading results</div>`;
+        return;
+      }
+
+      // Prepare computed fields
+      const prepared = rows.map(r => {
+        const attempts = r.attempts.slice(0, attemptCount);
+        const bestRaw = computeBest(attempts);
+        const averageRaw = (format === 'ao5') ? compute_ao5(attempts) : null;
+        const meanRaw = (format === 'mo3' || format === 'bo3') ? compute_mo3(attempts) : null;
+        const allAttemptsNull = attempts.every(a => a === null || a === undefined || a === '');
+        const hasAnyAttempt = attempts.some(a => a !== null && a !== undefined && a !== '');
+        const hasMissingAttempt = hasAnyAttempt && attempts.some(a => a === null || a === undefined || a === '');
+        return {
+          id: r.id,
+          name: r.competitor_name,
+          class: r.class || '',
+          number: r.number || '',
+          attempts,
+          bestRaw,
+          averageRaw,
+          meanRaw,
+          allAttemptsNull,
+          hasAnyAttempt,
+          hasMissingAttempt,
+          created_at: r.created_at
+        };
+      });
+
+      // Ranking helpers
+      function primaryValueForRow(row) {
+        if (format === 'ao5') {
+          const v = row.averageRaw; if (v === null || v === undefined) return Infinity; if (v === -1) return Infinity; return Number(v);
+        } else if (format === 'mo3') {
+          const v = row.meanRaw; if (v === null || v === undefined) return Infinity; if (v === -1) return Infinity; return Number(v);
+        } else {
+          const v = row.bestRaw; if (v === null || v === undefined) return Infinity; if (v === -1) return Infinity; return Number(v);
+        }
+      }
+      function secondaryValueForRow(row) {
+        if (format === 'ao5') { const v = row.bestRaw; if (v === null || v === undefined) return Infinity; if (v === -1) return Infinity; return Number(v); }
+        if (format === 'mo3') { const v = row.bestRaw; if (v === null || v === undefined) return Infinity; if (v === -1) return Infinity; return Number(v); }
+        if (row.averageRaw !== null && row.averageRaw !== undefined) { if (row.averageRaw === -1) return Infinity; return Number(row.averageRaw); }
+        if (row.meanRaw !== null && row.meanRaw !== undefined) { if (row.meanRaw === -1) return Infinity; return Number(row.meanRaw); }
+        return Infinity;
+      }
+
+      prepared.sort((a, b) => {
+        const pa = primaryValueForRow(a), pb = primaryValueForRow(b);
+        if (pa !== pb) return pa - pb;
+        const sa = secondaryValueForRow(a), sb = secondaryValueForRow(b);
+        if (sa !== sb) return sa - sb;
+        return String(a.name || '').localeCompare(String(b.name || ''));
+      });
+
+      // Assign ranks
+      const ranks = new Array(prepared.length).fill(null);
+      let lastPrimary = null, lastSecondary = null, lastRank = 0;
+      for (let i = 0; i < prepared.length; i++) {
+        const row = prepared[i];
+        if (row.allAttemptsNull) { ranks[i] = null; continue; }
+        const p = primaryValueForRow(row), s = secondaryValueForRow(row);
+        if (i === 0) { lastRank = 1; ranks[i] = lastRank; lastPrimary = p; lastSecondary = s; }
+        else {
+          if (p === lastPrimary && s === lastSecondary) ranks[i] = lastRank;
+          else { lastRank = i + 1; ranks[i] = lastRank; lastPrimary = p; lastSecondary = s; }
+        }
+      }
+
+      // Advance threshold and unfinished count
+      function getAdvanceThreshold(roundRow) {
+        try { const rc = String(roundRow.round_code || '').toLowerCase(); if (rc === 'f') return 3; } catch (e) {}
+        return 8;
+      }
+      const advanceThreshold = getAdvanceThreshold(roundRow);
+      const unfinishedCount = prepared.reduce((acc, row) => acc + (row.hasMissingAttempt ? 1 : 0), 0);
+
+      // Build UI
+      container.innerHTML = '';
+      const wrapper = document.createElement('div');
+      wrapper.style.maxWidth = '1100px';
+      wrapper.style.margin = '16px auto';
+      wrapper.style.padding = '12px';
+      wrapper.style.background = '#fff';
+      wrapper.style.borderRadius = '8px';
+      wrapper.style.boxShadow = '0 6px 18px rgba(18,38,63,0.04)';
+      wrapper.style.overflowX = 'auto';
+
+      const title = document.createElement('h2');
+      title.style.margin = '0 0 12px 0';
+      title.style.color = 'black';
+      title.textContent = `${EVENT_CODE_TO_NAME[String(roundRow.event_id)] || String(roundRow.event_id)} — ${ROUND_CODE_TO_NAME[String(roundRow.round_code)] || String(roundRow.round_code)}`;
+      wrapper.appendChild(title);
+
+      // Desktop table (original behavior)
+      if (!mobile) {
+        const table = document.createElement('table');
+        table.style.width = '100%';
+        table.style.borderCollapse = 'collapse';
+        table.style.fontSize = '0.95rem';
+
+        const thead = document.createElement('thead');
+        const headerRow = document.createElement('tr');
+        const headers = [
+          { key: 'rank', label: '#' },
+          { key: 'name', label: 'Name' },
+          { key: 'class', label: 'Class' },
+          { key: 'number', label: 'Number' }
+        ];
+        for (let i = 1; i <= attemptCount; i++) headers.push({ key: `a${i}`, label: String(i) });
+        headers.push({ key: 'best', label: 'Best' });
+        if (format === 'ao5') headers.push({ key: 'average', label: 'Average' });
+        if (format === 'mo3' || format === 'bo3') headers.push({ key: 'mean', label: 'Mean' });
+
+        const rankingColumnKey = (format === 'ao5') ? 'average' : (format === 'mo3' ? 'mean' : 'best');
+
+        headers.forEach(h => {
+          const th = document.createElement('th');
+          th.style.padding = '8px';
+          th.style.borderBottom = '1px solid #eee';
+          th.style.textAlign = 'left';
+          th.style.background = '#f7f9fb';
+          th.style.fontWeight = (h.key === rankingColumnKey) ? '800' : '700';
+          th.textContent = h.label;
+          headerRow.appendChild(th);
+        });
+
+        thead.appendChild(headerRow);
+        table.appendChild(thead);
+
+        const tbody = document.createElement('tbody');
+
+        for (let idx = 0; idx < prepared.length; idx++) {
+          const r = prepared[idx];
+          const tr = document.createElement('tr');
+          tr.style.borderBottom = '1px solid #f0f0f0';
+          tr.style.background = (idx % 2 === 0) ? '#fff' : '#fbfcfe';
+
+          // Rank cell with highlight logic (bright colors, black text, not bold)
+          const rankTd = document.createElement('td');
+          rankTd.style.padding = '8px';
+          const rankVal = (ranks[idx] === null || ranks[idx] === undefined) ? null : Number(ranks[idx]);
+          if (rankVal === null) rankTd.textContent = '';
+          else {
+            rankTd.textContent = String(rankVal);
+            if (r.hasAnyAttempt) {
+              const isThisUnfinished = !!r.hasMissingAttempt;
+              const otherUnfinished = Math.max(0, unfinishedCount - (isThisUnfinished ? 1 : 0));
+              if (rankVal + otherUnfinished <= advanceThreshold) {
+                rankTd.style.background = '#7CFC00';
+                rankTd.style.color = '#000';
+                rankTd.style.fontWeight = '400';
+              } else if (rankVal <= advanceThreshold) {
+                rankTd.style.background = '#FFFF66';
+                rankTd.style.color = '#000';
+                rankTd.style.fontWeight = '400';
+              }
+            }
+          }
+          tr.appendChild(rankTd);
+
+          // Name (link)
+          const nameTd = document.createElement('td');
+          nameTd.style.padding = '8px';
+          const nameLink = document.createElement('a');
+          const compPathSlug = slug(compRowName || compSlug || '');
+          const competitorSlug = slug(String(r.name || ''));
+          nameLink.href = `/${encodeURIComponent(compPathSlug)}/competitors/${encodeURIComponent(competitorSlug)}`;
+          nameLink.textContent = r.name || '';
+          nameLink.style.color = '#1976d2';
+          nameLink.style.textDecoration = 'none';
+          nameLink.addEventListener('click', (e) => {
+            e.preventDefault();
+            const path = `/${encodeURIComponent(compPathSlug)}/competitors/${encodeURIComponent(competitorSlug)}`;
+            navigate(path);
+          });
+          nameTd.appendChild(nameLink);
+          tr.appendChild(nameTd);
+
+          const classTd = document.createElement('td'); classTd.style.padding = '8px'; classTd.textContent = r.class || ''; tr.appendChild(classTd);
+          const numTd = document.createElement('td'); numTd.style.padding = '8px'; numTd.textContent = r.number || ''; tr.appendChild(numTd);
+
+          for (let i = 0; i < attemptCount; i++) {
+            const td = document.createElement('td'); td.style.padding = '8px'; td.textContent = csToDisplay(r.attempts[i]); tr.appendChild(td);
+          }
+
+          const bestTd = document.createElement('td'); bestTd.style.padding = '8px';
+          if (r.bestRaw === null || r.bestRaw === undefined) bestTd.textContent = '';
+          else if (r.bestRaw === -1) bestTd.textContent = 'DNF';
+          else bestTd.textContent = csToDisplay(r.bestRaw);
+          if (rankingColumnKey === 'best') bestTd.style.fontWeight = '700';
+          tr.appendChild(bestTd);
+
+          if (format === 'ao5') {
+            const avgTd = document.createElement('td'); avgTd.style.padding = '8px';
+            if (r.averageRaw === null || r.averageRaw === undefined) avgTd.textContent = '';
+            else if (r.averageRaw === -1) avgTd.textContent = 'DNF';
+            else avgTd.textContent = csToDisplay(r.averageRaw);
+            if (rankingColumnKey === 'average') avgTd.style.fontWeight = '700';
+            tr.appendChild(avgTd);
+          }
+          if (format === 'mo3' || format === 'bo3') {
+            const meanTd = document.createElement('td'); meanTd.style.padding = '8px';
+            if (r.meanRaw === null || r.meanRaw === undefined) meanTd.textContent = '';
+            else if (r.meanRaw === -1) meanTd.textContent = 'DNF';
+            else meanTd.textContent = csToDisplay(r.meanRaw);
+            if (rankingColumnKey === 'mean') meanTd.style.fontWeight = '700';
+            tr.appendChild(meanTd);
+          }
+
+          tbody.appendChild(tr);
+        }
+
+        table.appendChild(tbody);
+        wrapper.appendChild(table);
+      } else {
+        // Mobile view: show columns like renderPodiums: #, Name, Best, Average/Mean (omit attempts)
+        const table = document.createElement('table');
+        table.style.width = '100%';
+        table.style.borderCollapse = 'collapse';
+        table.style.fontSize = '0.95rem';
+
+        const thead = document.createElement('thead');
+        const headerRow = document.createElement('tr');
+        const headers = [
+          { key: 'rank', label: '#' },
+          { key: 'name', label: 'Name' },
+          { key: 'best', label: 'Best' }
+        ];
+        if (format === 'ao5') headers.push({ key: 'average', label: 'Average' });
+        if (format === 'mo3' || format === 'bo3') headers.push({ key: 'mean', label: 'Mean' });
+
+        headers.forEach(h => {
+          const th = document.createElement('th');
+          th.style.padding = '8px';
+          th.style.borderBottom = '1px solid #eee';
+          th.style.textAlign = 'left';
+          th.style.background = '#f7f9fb';
+          th.style.fontWeight = '700';
+          th.textContent = h.label;
+          headerRow.appendChild(th);
+        });
+        thead.appendChild(headerRow);
+        table.appendChild(thead);
+
+        const tbody = document.createElement('tbody');
+
+        for (let idx = 0; idx < prepared.length; idx++) {
+          const r = prepared[idx];
+          const tr = document.createElement('tr');
+          tr.style.borderBottom = '1px solid #f0f0f0';
+          tr.style.background = (idx % 2 === 0) ? '#fff' : '#fbfcfe';
+          tr.style.cursor = 'pointer';
+
+          // Rank cell (same highlight logic)
+          const rankTd = document.createElement('td');
+          rankTd.style.padding = '8px';
+          const rankVal = (ranks[idx] === null || ranks[idx] === undefined) ? null : Number(ranks[idx]);
+          if (rankVal === null) rankTd.textContent = '';
+          else {
+            rankTd.textContent = String(rankVal);
+            if (r.hasAnyAttempt) {
+              const isThisUnfinished = !!r.hasMissingAttempt;
+              const otherUnfinished = Math.max(0, unfinishedCount - (isThisUnfinished ? 1 : 0));
+              if (rankVal + otherUnfinished <= advanceThreshold) rankTd.style.background = '#7CFC00';
+              else if (rankVal <= advanceThreshold) rankTd.style.background = '#FFFF66';
+              rankTd.style.color = '#000';
+              rankTd.style.fontWeight = '400';
+            }
+          }
+          tr.appendChild(rankTd);
+
+          // Name (plain text on mobile)
+          const nameTd = document.createElement('td');
+          nameTd.style.padding = '8px';
+          nameTd.textContent = r.name || '';
+          tr.appendChild(nameTd);
+
+          // Best
+          const bestTd = document.createElement('td');
+          bestTd.style.padding = '8px';
+          if (r.bestRaw === null || r.bestRaw === undefined) bestTd.textContent = '';
+          else if (r.bestRaw === -1) bestTd.textContent = 'DNF';
+          else bestTd.textContent = csToDisplay(r.bestRaw);
+          tr.appendChild(bestTd);
+
+          // Average / Mean (if applicable)
+          if (format === 'ao5') {
+            const avgTd = document.createElement('td');
+            avgTd.style.padding = '8px';
+            if (r.averageRaw === null || r.averageRaw === undefined) avgTd.textContent = '';
+            else if (r.averageRaw === -1) avgTd.textContent = 'DNF';
+            else avgTd.textContent = csToDisplay(r.averageRaw);
+            tr.appendChild(avgTd);
+          }
+          if (format === 'mo3' || format === 'bo3') {
+            const meanTd = document.createElement('td');
+            meanTd.style.padding = '8px';
+            if (r.meanRaw === null || r.meanRaw === undefined) meanTd.textContent = '';
+            else if (r.meanRaw === -1) meanTd.textContent = 'DNF';
+            else meanTd.textContent = csToDisplay(r.meanRaw);
+            tr.appendChild(meanTd);
+          }
+
+          // click opens modal with details (modal contains the "All results" link)
+          tr.addEventListener('click', () => {
+            const compPathSlug = slug(compRowName || compSlug || '');
+            const nameLine = `${r.name || ''} #${rankVal === null ? '' : rankVal}`;
+            const nameRow = `<div style="font-size:18px;font-weight:700;margin-bottom:8px">${escapeHtml(nameLine)}</div>`;
+            const metaRow = `<div style="font-size:14px;font-weight:600;margin-bottom:8px">Name<br><div style="font-weight:normal;">${escapeHtml(r.name || '')} ${escapeHtml(r.class || '')}${r.number ? `(${escapeHtml(String(r.number))})` : ''}</div></div>`;
+            const linkRow = `<div style="margin-bottom:8px"><a href="#" data-nav="/${encodeURIComponent(compPathSlug)}/competitors/${encodeURIComponent(slug(String(r.name||'')))}" style="color:#1976d2;text-decoration:underline">All results</a></div>`;
+            const attemptsText = (r.attempts && r.attempts.length) ? r.attempts.map(a => (a === null || a === undefined || a === '') ? '' : csToDisplay(a)).filter(x=>x!=='').join(', ') : '';
+            const attemptsRow = `<div style="font-size:14px;font-weight:600;margin-bottom:8px">Attempts<br><div style="font-weight:normal;">${escapeHtml(attemptsText || '')}</div></div>`;
+            const avgText = (format === 'ao5') ? (r.averageRaw === null || r.averageRaw === undefined ? '' : (r.averageRaw === -1 ? 'DNF' : csToDisplay(r.averageRaw))) : ((format === 'mo3' || format === 'bo3') ? (r.meanRaw === null || r.meanRaw === undefined ? '' : (r.meanRaw === -1 ? 'DNF' : csToDisplay(r.meanRaw))) : '');
+            const avgRow = `<div style="font-size:14px;font-weight:600;margin-bottom:8px">Average<br><div style="font-weight:normal;">${escapeHtml(avgText || '')}</div></div>`;
+            const bestRow = `<div style="font-size:14px;font-weight:600;margin-bottom:8px">Best<br><div style="font-weight:normal;">${escapeHtml((r.bestRaw === null || r.bestRaw === undefined) ? '' : (r.bestRaw === -1 ? 'DNF' : csToDisplay(r.bestRaw)))}</div></div>`;
+
+            const html = `${nameRow}${metaRow}${linkRow}${attemptsRow}${avgRow}${bestRow}`;
+            showMobileDetail(html);
+          });
+
+          tbody.appendChild(tr);
+        }
+
+        table.appendChild(tbody);
+        wrapper.appendChild(table);
+      }
+
+      wrapper.classList.add('leaderboard-wrapper');
+      try { attachInputLiveButtonIfAuthorized(compRowName || compSlug || '', roundRow, { wrapper }); } catch (e) { console.warn('attachInputLiveButtonIfAuthorized failed', e); }
+
+      container.appendChild(wrapper);
+
+      // realtime subscription (unchanged)
+      try {
+        const channel = supabase.channel(`public:round_results:round_id=eq.${roundRow.id}`);
+        if (__currentLeaderboardSubscription && typeof __currentLeaderboardSubscription.unsubscribe === 'function') {
+          try { __currentLeaderboardSubscription.unsubscribe(); } catch (e) {}
+          __currentLeaderboardSubscription = null;
+        }
+
+        channel.on('postgres_changes', { event: '*', schema: 'public', table: 'round_results', filter: `round_id=eq.${roundRow.id}` }, payload => {
+          // on change, re-render (debounced)
+          scheduleRenderLeaderboardDebounced({ compSlug, eventId, roundId });
+        });
+
+        channel.subscribe().catch(()=>{});
+        __currentLeaderboardSubscription = channel;
+      } catch (err) {
+        console.warn('renderLeaderboard: realtime subscription failed', err);
+      }
+
+      return;
+    }
+
+    async function renderEditRound(compSlug, eventId, roundId) {
+      const container = document.getElementById('edit-round');
+      if (!container) {
+        console.warn('renderEditRound: #edit-round element not found');
+        return;
+      }
+
+      container.innerHTML = '';
+      container.style.display = ''; // show
+
+      // Loading UI
+      const loading = document.createElement('div');
+      loading.style.maxWidth = '1100px';
+      loading.style.margin = '16px auto';
+      loading.style.padding = '12px';
+      loading.style.background = '#fff';
+      loading.style.borderRadius = '8px';
+      loading.style.boxShadow = '0 6px 18px rgba(18,38,63,0.04)';
+      loading.innerHTML = `<div style="color:#666">Loading...</div>`;
+      container.appendChild(loading);
+
+      // Resolve competition row (same approach used elsewhere)
+      const searchName = String(compSlug || '').replace(/_/g, ' ').trim();
+      let compRow = null;
+      try {
+        const { data: compData, error: compErr } = await supabase
+          .from('competitions')
+          .select('id, name')
+          .ilike('name', `%${searchName}%`)
+          .limit(1);
+        if (!compErr && compData && compData.length) compRow = compData[0];
+      } catch (e) { /* ignore */ }
+
+      if (!compRow) {
+        // fallback: fetch all and match slug
+        try {
+          const { data: allComps } = await supabase.from('competitions').select('id,name');
+          const target = String(searchName).replace(/\s+/g, '_');
+          for (const c of (allComps || [])) {
+            if (String(c.name).replace(/\s+/g, '_') === target) { compRow = c; break; }
+          }
+        } catch (e) { /* ignore */ }
+      }
+
+      if (!compRow) {
+        container.innerHTML = `<div style="max-width:1100px;margin:16px auto;color:#666">Competition not found: ${unslug(searchName)}</div>`;
+        return;
+      }
+
+      // Resolve round metadata
+      let roundRow = null;
+      try {
+        const { data, error } = await supabase
+          .from('rounds')
+          .select('id, comp_id, event_id, round_code, format')
+          .eq('id', Number(roundId))
+          .limit(1);
+        if (error) throw error;
+        roundRow = (data && data[0]) || null;
+      } catch (err) {
+        console.error('renderEditRound: error resolving round', err);
+        container.innerHTML = `<div style="max-width:1100px;margin:16px auto;color:#900">Error loading round</div>`;
+        return;
+      }
+      if (!roundRow) {
+        container.innerHTML = `<div style="max-width:1100px;margin:16px auto;color:#666">Round not found</div>`;
+        return;
+      }
+
+      // Determine format and attemptCount
+      const fmt = (roundRow.format || '').toLowerCase();
+      let attemptCount = 5;
+      if (fmt === 'mo3' || fmt === 'bo3') attemptCount = 3;
+      else if (fmt === 'bo2') attemptCount = 2;
+      else if (fmt === 'bo1') attemptCount = 1;
+
+      // Fetch all round_results for this round
+      let allRows = [];
+      try {
+        const { data: allData, error: allErr } = await supabase
+          .from('round_results')
+          .select('id, competitor_name, competitor_id, class, number, attempt1, attempt2, attempt3, attempt4, attempt5')
+          .eq('round_id', roundRow.id)
+          .order('competitor_id', { ascending: true }); // order by competitor_id as requested
+
+        if (allErr) throw allErr;
+        allRows = allData || [];
+      } catch (err) {
+        console.error('renderEditRound: error fetching round_results', err);
+        container.innerHTML = `<div style="max-width:1100px;margin:16px auto;color:#900">Error loading results</div>`;
+        return;
+      }
+
+      // Build edit UI
+      container.innerHTML = ''; // clear loading
+
+      const wrapper = document.createElement('div');
+      wrapper.style.maxWidth = '1100px';
+      wrapper.style.margin = '16px auto';
+      wrapper.style.padding = '12px';
+      wrapper.style.background = '#fff';
+      wrapper.style.borderRadius = '8px';
+      wrapper.style.boxShadow = '0 6px 18px rgba(18,38,63,0.04)';
+      wrapper.style.overflowX = 'auto';
+
+      // Title + controls
+      const titleRow = document.createElement('div');
+      titleRow.style.display = 'flex';
+      titleRow.style.justifyContent = 'space-between';
+      titleRow.style.alignItems = 'center';
+      titleRow.style.marginBottom = '12px';
+
+      const title = document.createElement('h2');
+      title.style.margin = '0';
+      title.textContent = `Inputting results for ${EVENT_CODE_TO_NAME[String(roundRow.event_id)] || String(roundRow.event_id)} — ${ROUND_CODE_TO_NAME[String(roundRow.round_code)] || String(roundRow.round_code)}`;
+      titleRow.appendChild(title);
+
+      const controls = document.createElement('div');
+      controls.style.display = 'flex';
+      controls.style.gap = '8px';
+
+      const cancelBtn = document.createElement('button');
+      cancelBtn.textContent = 'Cancel';
+      cancelBtn.style.cursor = 'pointer';
+      cancelBtn.style.padding = '8px 12px';
+      cancelBtn.style.borderRadius = '6px';
+      cancelBtn.style.border = '1px solid #ddd';
+      cancelBtn.style.background = '#fff';
+      cancelBtn.addEventListener('click', () => {
+        // go back to leaderboard view
+        navigate(`/${encodeURIComponent(slug(compRow.name))}/${encodeURIComponent(String(roundRow.event_id))}/${encodeURIComponent(String(roundRow.id))}`);
+      });
+      controls.appendChild(cancelBtn);
+
+      const saveBtn = document.createElement('button');
+      saveBtn.textContent = 'Save changes';
+      saveBtn.style.cursor = 'pointer';
+      saveBtn.style.padding = '8px 12px';
+      saveBtn.style.borderRadius = '6px';
+      saveBtn.style.border = '0';
+      saveBtn.style.background = '#1976D2';
+      saveBtn.style.color = '#fff';
+      controls.appendChild(saveBtn);
+
+      titleRow.appendChild(controls);
+      wrapper.appendChild(titleRow);
+
+      // Table: no # column, competitors ordered by competitor_id
+      const table = document.createElement('table');
+      table.style.width = '100%';
+      table.style.borderCollapse = 'collapse';
+      table.style.fontSize = '0.95rem';
+
+      // Header
+      const thead = document.createElement('thead');
+      const headerRow = document.createElement('tr');
+
+      // Name, Class, Number
+      ['Name', 'Class', 'Number'].forEach(h => {
+        const th = document.createElement('th');
+        th.style.padding = '8px';
+        th.style.borderBottom = '1px solid #eee';
+        th.style.textAlign = 'left';
+        th.style.background = '#f7f9fb';
+        th.style.fontWeight = '700';
+        th.textContent = h;
+        headerRow.appendChild(th);
+      });
+
+      // attempt input columns
+      for (let i = 1; i <= attemptCount; i++) {
+        const th = document.createElement('th');
+        th.style.padding = '8px';
+        th.style.borderBottom = '1px solid #eee';
+        th.style.textAlign = 'left';
+        th.style.background = '#f7f9fb';
+        th.style.fontWeight = '700';
+        th.textContent = String(i);
+        headerRow.appendChild(th);
+      }
+
+      thead.appendChild(headerRow);
+      table.appendChild(thead);
+
+      const tbody = document.createElement('tbody');
+
+      // Build rows with inputs
+      // We'll keep a small data structure to reference inputs for saving
+      const editRows = []; // { id, competitor_id, inputs: [inputEl,...], name, class, number }
+
+      // Ensure ordering by competitor_id numeric if possible, else by name
+      allRows.sort((a,b) => {
+        const ai = a.competitor_id ?? '';
+        const bi = b.competitor_id ?? '';
+        if (ai !== '' && bi !== '') {
+          // try numeric compare
+          const an = Number(ai), bn = Number(bi);
+          if (Number.isFinite(an) && Number.isFinite(bn)) return an - bn;
+          return String(ai).localeCompare(String(bi));
+        }
+        return String(a.competitor_name || '').localeCompare(String(b.competitor_name || ''));
+      });
+
+      allRows.forEach((r, idx) => {
+        const tr = document.createElement('tr');
+        tr.style.borderBottom = '1px solid #f0f0f0';
+        tr.style.background = (idx % 2 === 0) ? '#fff' : '#fbfcfe';
+
+        // Name
+        const nameTd = document.createElement('td');
+        nameTd.style.padding = '8px';
+        nameTd.textContent = r.competitor_name || '';
+        tr.appendChild(nameTd);
+
+        // Class
+        const classTd = document.createElement('td');
+        classTd.style.padding = '8px';
+        classTd.textContent = r.class || '';
+        tr.appendChild(classTd);
+
+        // Number
+        const numTd = document.createElement('td');
+        numTd.style.padding = '8px';
+        numTd.textContent = r.number || '';
+        tr.appendChild(numTd);
+
+        // Attempt inputs
+        const inputs = [];
+        for (let i = 0; i < attemptCount; i++) {
+          const td = document.createElement('td');
+          td.style.padding = '8px';
+          const input = document.createElement('input');
+          input.type = 'text';
+          input.style.width = '100%';
+          input.style.padding = '6px';
+          input.style.border = '1px solid #ddd';
+          input.style.borderRadius = '6px';
+          // prefill with existing value if present
+          const raw = r[`attempt${i+1}`];
+          input.value = (raw === null || raw === undefined || raw === '') ? '' : csToDisplay(raw);
+          // update computed cells on input
+          input.addEventListener('input', () => {
+            // recompute best/avg/mean for this row live
+            const vals = inputs.map(inp => parseTimeToCentiseconds(inp.value));
+            const best = computeBest(vals);
+            bestCell.textContent = (best === null || best === undefined) ? '' : csToDisplay(best);
+            if (fmt === 'ao5') {
+              const avg = compute_ao5(vals);
+              avgCell.textContent = (avg === null || avg === undefined) ? '' : (avg === -1 ? 'DNF' : csToDisplay(avg));
+            } else if (fmt === 'mo3' || fmt === 'bo3') {
+              const mean = compute_mo3(vals);
+              avgCell.textContent = (mean === null || mean === undefined) ? '' : (mean === -1 ? 'DNF' : csToDisplay(mean));
+            }
+          });
+          td.appendChild(input);
+          tr.appendChild(td);
+          inputs.push(input);
+        }
+
+        tbody.appendChild(tr);
+
+        editRows.push({
+          id: r.id || null,
+          competitor_id: r.competitor_id || null,
+          competitor_name: r.competitor_name || '',
+          class: r.class || '',
+          number: r.number || '',
+          inputs // array of input elements
+        });
+      });
+
+      table.appendChild(tbody);
+      wrapper.appendChild(table);
+
+      // status message
+      const status = document.createElement('div');
+      status.style.marginTop = '12px';
+      status.style.color = '#666';
+      wrapper.appendChild(status);
+
+      container.appendChild(wrapper);
+
+      // Save handler
+      saveBtn.addEventListener('click', async () => {
+        saveBtn.disabled = true;
+        saveBtn.textContent = 'Saving...';
+        status.textContent = '';
+
+        // Build payloads for upsert
+        const payloads = [];
+        for (const er of editRows) {
+          const attemptsParsed = er.inputs.map(inp => parseTimeToCentiseconds(inp.value));
+          // Build object: if id exists include id (so upsert updates), else include round_id and competitor_name etc.
+          const obj = {
+            round_id: roundRow.id,
+            competitor_name: er.competitor_name,
+            competitor_id: er.competitor_id,
+            class: er.class,
+            number: er.number,
+            attempt1: attemptsParsed[0] ?? null,
+            attempt2: attemptsParsed[1] ?? null,
+            attempt3: attemptsParsed[2] ?? null,
+            attempt4: attemptsParsed[3] ?? null,
+            attempt5: attemptsParsed[4] ?? null
+          };
+          if (er.id) obj.id = er.id;
+          payloads.push(obj);
+        }
+
+        try {
+          // Use upsert to insert or update rows. This assumes 'id' is primary key in round_results.
+          // If your table uses a different primary key, adjust accordingly.
+          const { data, error } = await supabase
+            .from('round_results')
+            .upsert(payloads, { returning: 'representation' });
+
+          if (error) throw error;
+
+          status.style.color = '#0a7';
+          status.textContent = 'Saved successfully.';
+          // After saving, navigate back to leaderboard view
+          setTimeout(() => {
+            navigate(`/${encodeURIComponent(slug(compRow.name))}/${encodeURIComponent(String(roundRow.event_id))}/${encodeURIComponent(String(roundRow.id))}`);
+          }, 700);
+        } catch (err) {
+          console.error('renderEditRound: save error', err);
+          status.style.color = '#900';
+          status.textContent = 'Save failed: ' + (err.message || String(err));
+          saveBtn.disabled = false;
+          saveBtn.textContent = 'Save changes';
+        }
+      });
+
+      // done
+      return;
+    }
+
+    function attachInputLiveButtonIfAuthorized(compRowName, roundRow, opts = {}) {
+      if (!roundRow) return;
+      const container = document.getElementById('leaderboard');
+      if (!container) return;
+
+      // Prefer an explicit wrapper passed in; otherwise try to find the main wrapper created by renderLeaderboard
+      let wrapper = opts.wrapper || container.querySelector('.leaderboard-wrapper') || container.querySelector('div');
+      if (!wrapper) {
+        // fallback: use container itself
+        wrapper = container;
+      }
+
+      // Remove any previous button
+      const existing = wrapper.querySelector('#btn-input-live-results');
+      if (existing) existing.remove();
+
+      // Only show when logged in
+      if (!isLoggedIn) return;
+
+      // Build slug for competition path (use slug() if available)
+      const compPathSlug = (typeof slug === 'function') ? slug(String(compRowName || '')) : String(compRowName || '').replace(/\s+/g, '_');
+
+      // Create button
+      const btn = document.createElement('button');
+      btn.id = 'btn-input-live-results';
+      btn.type = 'button';
+      btn.setAttribute('aria-label', 'Input live results');
+      btn.textContent = 'Input live results for this round';
+      btn.style.fontSize = '1.2rem';
+      btn.style.padding = '8px 12px';
+      btn.style.borderRadius = '6px';
+      btn.style.border = '0';
+      btn.style.background = '#1976D2';
+      btn.style.color = '#fff';
+      btn.style.cursor = 'pointer';
+      btn.style.marginBottom = '12px';
+      btn.style.display = 'inline-flex';
+      btn.style.alignItems = 'center';
+      btn.style.gap = '8px';
+      btn.tabIndex = 0;
+
+      btn.addEventListener('click', (e) => {
+        e.preventDefault();
+        // navigate to edit route: /COMP_SLUG/EVENT_ID/ROUND_ID/edit
+        const path = `/${encodeURIComponent(compPathSlug)}/${encodeURIComponent(String(roundRow.event_id))}/${encodeURIComponent(String(roundRow.id))}/edit`;
+        if (typeof navigate === 'function') navigate(path);
+        else window.location.href = path;
+      });
+
+      // Insert button at top of wrapper (before first child)
+      if (wrapper.firstChild) wrapper.insertBefore(btn, wrapper.firstChild);
+      else wrapper.appendChild(btn);
+    }
+
+    async function renderCompetitorList(compSlug) {
+      const container = document.getElementById('competitor-list');
+      if (!container) {
+        console.warn('renderCompetitorList: #competitor-list not found');
+        return;
+      }
+
+      // Elements inside the competitor-list block (these exist in the provided HTML)
+      const searchEl = document.getElementById('competitors-search');
+      const wrap = document.getElementById('competitors-wrap');
+
+      // Show loading
+      wrap.innerHTML = `<div style="color:#666">Loading...</div>`;
+
+      // Resolve competition row (same approach used elsewhere)
+      const searchName = String(compSlug || '').replace(/_/g, ' ').trim();
+      if (!searchName) {
+        wrap.innerHTML = `<div style="color:#900">Invalid competition slug</div>`;
+        return;
+      }
+
+      let compRow = null;
+      try {
+        const { data: compData, error: compErr } = await supabase
+          .from('competitions')
+          .select('id, name')
+          .ilike('name', `%${searchName}%`)
+          .limit(1);
+
+        if (compErr) {
+          console.warn('renderCompetitorList: competition lookup error', compErr);
+        } else if (compData && compData.length) {
+          compRow = compData[0];
+        }
+      } catch (e) {
+        console.warn('renderCompetitorList: competition lookup threw', e);
+      }
+
+      // Fallback: fetch all and match slug
+      if (!compRow) {
+        try {
+          const { data: allComps, error: allErr } = await supabase.from('competitions').select('id,name');
+          if (!allErr && allComps) {
+            const target = String(searchName).replace(/\s+/g, '_');
+            for (const c of allComps) {
+              if (String(c.name).replace(/\s+/g, '_') === target) { compRow = c; break; }
+            }
+          }
+        } catch (e) {
+          console.warn('renderCompetitorList: fallback competition lookup threw', e);
+        }
+      }
+
+      if (!compRow) {
+        wrap.innerHTML = `<div style="color:#666">Competition not found</div>`;
+        return;
+      }
+
+      // Fetch rounds for this competition
+      let rounds = [];
+      try {
+        const { data: roundsData, error: roundsErr } = await supabase
+          .from('rounds')
+          .select('id, event_id, round_code')
+          .eq('comp_id', compRow.id)
+          .order('id', { ascending: true });
+
+        if (roundsErr) throw roundsErr;
+        rounds = roundsData || [];
+      } catch (err) {
+        console.error('renderCompetitorList: error fetching rounds', err);
+        wrap.innerHTML = `<div style="color:#900">Error loading rounds</div>`;
+        return;
+      }
+
+      if (!rounds.length) {
+        wrap.innerHTML = `<div style="color:#666">No rounds found for ${compRow.name}</div>`;
+        return;
+      }
+
+      // Collect round ids
+      const roundIds = rounds.map(r => r.id).filter(Boolean);
+      if (!roundIds.length) {
+        wrap.innerHTML = `<div style="color:#666">No rounds found for ${compRow.name}</div>`;
+        return;
+      }
+
+      // Fetch competitors from round_results where round_id IN roundIds
+      let results = [];
+      try {
+        const { data, error } = await supabase
+          .from('round_results')
+          .select('competitor_name, competitor_id, class, number')
+          .in('round_id', roundIds);
+
+        if (error) throw error;
+        results = data || [];
+      } catch (err) {
+        console.error('renderCompetitorList: error fetching round_results', err);
+        wrap.innerHTML = `<div style="color:#900">Error loading competitors</div>`;
+        return;
+      }
+
+      // Deduplicate competitors by name + class + number
+      const map = new Map();
+      for (const r of results) {
+        const name = (r.competitor_name || '').trim();
+        const cls = (r.class || '').trim();
+        const num = (r.number !== null && r.number !== undefined) ? String(r.number).trim() : '';
+        if (!name) continue;
+        const key = `${name}||${cls}||${num}`;
+        if (!map.has(key)) {
+          map.set(key, { name, class: cls, number: num, competitor_id: r.competitor_id || null });
+        }
+      }
+
+      const competitors = Array.from(map.values()).sort((a, b) => {
+        // sort by name then class then number
+        const na = a.name.toLowerCase(), nb = b.name.toLowerCase();
+        if (na < nb) return -1;
+        if (na > nb) return 1;
+        if (a.class < b.class) return -1;
+        if (a.class > b.class) return 1;
+        return (a.number || '').localeCompare(b.number || '', undefined, { numeric: true });
+      });
+
+      // Render list UI
+      function renderList(list) {
+        if (!list || !list.length) {
+          wrap.innerHTML = `<div style="color:#666">No competitors found</div>`;
+          return;
+        }
+
+        const frag = document.createDocumentFragment();
+        list.forEach((c) => {
+          const row = document.createElement('div');
+          row.className = 'competitor-row';
+          row.style.display = 'flex';
+          row.style.alignItems = 'center';
+          row.style.justifyContent = 'space-between';
+          row.style.padding = '8px';
+          row.style.borderBottom = '1px solid #f0f0f0';
+          row.style.cursor = 'pointer';
+
+          const left = document.createElement('div');
+          left.style.display = 'flex';
+          left.style.flexDirection = 'column';
+          left.style.gap = '2px';
+
+          const nameEl = document.createElement('div');
+          nameEl.textContent = c.name;
+          nameEl.style.fontWeight = '700';
+
+          left.appendChild(nameEl);
+
+          row.appendChild(left);
+
+          row.addEventListener('click', (e) => {
+            e.preventDefault();
+            const compPathSlug = compSlug; // already slug form
+            const competitorSlug = slug(String(c.name || ''));
+            const path = `/${encodeURIComponent(compPathSlug)}/competitors/${encodeURIComponent(competitorSlug)}`;
+            navigate(path);
+          });
+
+          // keyboard accessibility
+          row.tabIndex = 0;
+          row.addEventListener('keydown', (ev) => {
+            if (ev.key === 'Enter' || ev.key === ' ') { ev.preventDefault(); row.click(); }
+          });
+
+          frag.appendChild(row);
+        });
+
+        // replace content
+        wrap.innerHTML = '';
+        wrap.appendChild(frag);
+      }
+
+      // initial render
+      renderList(competitors);
+
+      // Wire search input to filter by name/class/number
+      function filterAndRender(q) {
+        const ql = String(q || '').trim().toLowerCase();
+        if (!ql) {
+          renderList(competitors);
+          return;
+        }
+        const filtered = competitors.filter(c => {
+          const name = (c.name || '').toLowerCase();
+          const cls = (c.class || '').toLowerCase();
+          const num = (c.number || '').toLowerCase();
+          return name.includes(ql) || cls.includes(ql) || num.includes(ql);
+        });
+        renderList(filtered);
+      }
+
+      // attach handlers
+      searchEl.removeEventListener('input', searchEl._competitorInputHandler);
+      searchEl._competitorInputHandler = (e) => filterAndRender(e.target.value);
+      searchEl.addEventListener('input', searchEl._competitorInputHandler);
+      return competitors;
+    }
+
+    async function renderCompetitorResults(compSlug, competitorName) {
+      const container = document.getElementById('competitor-results');
+      if (!container) {
+        console.warn('renderCompetitorResults: #competitor-results element not found');
+        return;
+      }
+
+      const mobile = isMobileView();
+
+      container.innerHTML = '';
+      const loading = document.createElement('div');
+      loading.style.maxWidth = '1100px';
+      loading.style.margin = '16px auto';
+      loading.style.padding = '12px';
+      loading.style.background = '#fff';
+      loading.style.borderRadius = '8px';
+      loading.style.boxShadow = '0 6px 18px rgba(18,38,63,0.04)';
+      loading.innerHTML = `<div style="color:#666">Loading...</div>`;
+      container.appendChild(loading);
+
+      // Resolve competition row
+      const searchName = String(compSlug || '').replace(/_/g, ' ').trim();
+      let compRow = null;
+      try {
+        const { data: compData, error: compErr } = await supabase
+          .from('competitions')
+          .select('id, name')
+          .ilike('name', `%${searchName}%`)
+          .limit(1);
+        if (!compErr && compData && compData.length) compRow = compData[0];
+      } catch (e) { /* ignore */ }
+
+      if (!compRow) {
+        try {
+          const { data: allComps } = await supabase.from('competitions').select('id,name');
+          const target = String(searchName).replace(/\s+/g, '_');
+          for (const c of (allComps || [])) {
+            if (String(c.name).replace(/\s+/g, '_') === target) { compRow = c; break; }
+          }
+        } catch (e) { /* ignore */ }
+      }
+
+      if (!compRow) {
+        container.innerHTML = `<div style="max-width:1100px;margin:16px auto;color:#666">Competition not found: ${unslug(searchName)}</div>`;
+        return;
+      }
+
+      // Fetch all rounds for this competition
+      let rounds = [];
+      try {
+        const { data: roundsData, error: roundsErr } = await supabase
+          .from('rounds')
+          .select('id, event_id, round_code, format')
+          .eq('comp_id', compRow.id)
+          .order('id', { ascending: true });
+
+        if (roundsErr) throw roundsErr;
+        rounds = roundsData || [];
+      } catch (err) {
+        console.error('renderCompetitorResults: error fetching rounds', err);
+        container.innerHTML = `<div style="max-width:1100px;margin:16px auto;color:#900">Error loading rounds</div>`;
+        return;
+      }
+
+      // Fetch round_results for this competitor across all rounds (parallel)
+      const roundFetchPromises = rounds.map(r =>
+        supabase
+          .from('round_results')
+          .select('id, round_id, competitor_name, competitor_id, class, number, attempt1, attempt2, attempt3, attempt4, attempt5, created_at')
+          .eq('round_id', r.id)
+          .ilike('competitor_name', competitorName)
+          .then(res => ({ round: r, res }))
+          .catch(err => ({ round: r, res: { data: [], error: err } }))
+      );
+
+      let roundResultsForCompetitor = [];
+      try {
+        const roundFetchResults = await Promise.all(roundFetchPromises);
+        for (const item of roundFetchResults) {
+          const r = item.round;
+          const { data, error } = item.res;
+          if (error) {
+            console.warn('renderCompetitorResults: error fetching round_results for round', r.id, error);
+            continue;
+          }
+          if (data && data.length) {
+            for (const row of data) {
+              roundResultsForCompetitor.push({ round: r, row });
+            }
+          }
+        }
+      } catch (err) {
+        console.error('renderCompetitorResults: error fetching competitor round results', err);
+        container.innerHTML = `<div style="max-width:1100px;margin:16px auto;color:#900">Error loading competitor results</div>`;
+        return;
+      }
+
+      if (!roundResultsForCompetitor.length) {
+        container.innerHTML = `<div style="max-width:1100px;margin:16px auto;color:#666">No results found for ${competitorName} in ${compRow.name}</div>`;
+        return;
+      }
+
+      // Group by event
+      const byEvent = new Map();
+      for (const item of roundResultsForCompetitor) {
+        const ev = String(item.round.event_id || '').trim();
+        if (!byEvent.has(ev)) byEvent.set(ev, []);
+        byEvent.get(ev).push(item);
+      }
+
+      // Order events by EVENT_CODE_TO_NAME then remaining
+      const eventOrder = Object.keys(EVENT_CODE_TO_NAME);
+      const orderedEventCodes = [];
+      for (const code of eventOrder) if (byEvent.has(code)) orderedEventCodes.push(code);
+      for (const code of byEvent.keys()) if (!orderedEventCodes.includes(code)) orderedEventCodes.push(code);
+
+      // Render page
+      container.innerHTML = '';
+      const pageWrap = document.createElement('div');
+      pageWrap.style.maxWidth = '1100px';
+      pageWrap.style.margin = '16px auto';
+      pageWrap.style.padding = '12px';
+      pageWrap.style.boxSizing = 'border-box';
+
+      const pageTitle = document.createElement('h2');
+      pageTitle.style.margin = '0 0 12px 0';
+      pageTitle.style.color = 'black';
+      pageTitle.textContent = `${unslug(competitorName)}`;
+      pageWrap.appendChild(pageTitle);
+
+      const roundOrder = ['1','2','3','f'];
+
+      function getPrimarySecondary(fmt, obj) {
+        const f = (fmt || '').toLowerCase();
+        if (f === 'ao5') return { primary: obj.averageRaw, secondary: obj.bestRaw };
+        if (f === 'mo3') return { primary: obj.meanRaw, secondary: obj.bestRaw };
+        if (f === 'bo3') return { primary: obj.bestRaw, secondary: obj.meanRaw };
+        if (f === 'bo2' || f === 'bo1' || !f) return { primary: obj.bestRaw, secondary: (obj.averageRaw !== undefined ? obj.averageRaw : obj.meanRaw) };
+        return { primary: obj.bestRaw, secondary: (obj.averageRaw !== undefined ? obj.averageRaw : obj.meanRaw) };
+      }
+
+      function sortKeyValue(v) {
+        if (v === null || v === undefined) return Infinity;
+        if (v === -1) return Infinity;
+        const n = Number(v);
+        if (!Number.isFinite(n)) return Infinity;
+        return n;
+      }
+
+      // For each event
+      for (const evCode of orderedEventCodes) {
+        const evItems = byEvent.get(evCode) || [];
+        if (!evItems.length) continue;
+
+        // Filter rounds: only include rounds where the competitor has at least one non-null attempt
+        const filteredItems = evItems.filter(it => {
+          const rr = it.row;
+          const attempts = [
+            rr.attempt1 ?? null,
+            rr.attempt2 ?? null,
+            rr.attempt3 ?? null,
+            rr.attempt4 ?? null,
+            rr.attempt5 ?? null
+          ];
+          return attempts.some(a => a !== null && a !== undefined && a !== '');
+        });
+
+        if (!filteredItems.length) continue;
+
+        const roundsMap = new Map();
+        for (const it of filteredItems) roundsMap.set(it.round.id, it);
+        const roundsArray = Array.from(roundsMap.values());
+
+        roundsArray.sort((a,b) => {
+          const ac = a.round.round_code || '';
+          const bc = b.round.round_code || '';
+          const ai = roundOrder.indexOf(ac) >= 0 ? roundOrder.indexOf(ac) : 99;
+          const bi = roundOrder.indexOf(bc) >= 0 ? roundOrder.indexOf(bc) : 99;
+          if (ai !== bi) return ai - bi;
+          return a.round.id - b.round.id;
+        });
+
+        const evHeader = document.createElement('h3');
+        evHeader.style.margin = '18px 0 8px 0';
+        evHeader.textContent = EVENT_CODE_TO_NAME[evCode] || evCode;
+        pageWrap.appendChild(evHeader);
+
+        // Determine max attempt columns and whether to include average/mean columns
+        let maxAttemptCount = 1;
+        for (const it of roundsArray) {
+          const fmt = (it.round.format || '').toLowerCase();
+          let ac = 5;
+          if (fmt === 'mo3' || fmt === 'bo3') ac = 3;
+          else if (fmt === 'bo2') ac = 2;
+          else if (fmt === 'bo1') ac = 1;
+          maxAttemptCount = Math.max(maxAttemptCount, ac);
+        }
+        const includeAverage = roundsArray.some(it => (it.round.format || '').toLowerCase() === 'ao5');
+        const includeMean = roundsArray.some(it => {
+          const f = (it.round.format || '').toLowerCase();
+          return f === 'mo3' || f === 'bo3';
+        });
+
+        const tableWrap = document.createElement('div');
+        tableWrap.style.background = '#fff';
+        tableWrap.style.borderRadius = '8px';
+        tableWrap.style.boxShadow = '0 6px 18px rgba(18,38,63,0.04)';
+        tableWrap.style.overflowX = 'auto';
+        tableWrap.style.marginBottom = '12px';
+        tableWrap.style.padding = '12px';
+
+        const table = document.createElement('table');
+        table.style.width = '100%';
+        table.style.borderCollapse = 'collapse';
+        table.style.fontSize = '0.95rem';
+
+        // Header (omit attempts on mobile)
+        const thead = document.createElement('thead');
+        const headerRow = document.createElement('tr');
+        const headers = [
+          { key: 'rank', label: '#' },
+          { key: 'round', label: 'Round' }
+        ];
+        if (!mobile) {
+          for (let i = 1; i <= maxAttemptCount; i++) headers.push({ key: `a${i}`, label: String(i) });
+        }
+        headers.push({ key: 'best', label: 'Best' });
+        if (includeAverage) headers.push({ key: 'average', label: 'Average' });
+        if (includeMean) headers.push({ key: 'mean', label: 'Mean' });
+
+        headers.forEach(h => {
+          const th = document.createElement('th');
+          th.style.padding = '8px';
+          th.style.borderBottom = '1px solid #eee';
+          th.style.textAlign = 'left';
+          th.style.background = '#f7f9fb';
+          th.style.fontWeight = '700';
+          th.textContent = h.label;
+          headerRow.appendChild(th);
+        });
+        thead.appendChild(headerRow);
+        table.appendChild(thead);
+
+        const tbody = document.createElement('tbody');
+
+        for (const it of roundsArray) {
+          const r = it.round;
+          const row = it.row;
+
+          const fmt = (r.format || '').toLowerCase();
+          let attemptCount = 5;
+          if (fmt === 'mo3' || fmt === 'bo3') attemptCount = 3;
+          else if (fmt === 'bo2') attemptCount = 2;
+          else if (fmt === 'bo1') attemptCount = 1;
+
+          // Fetch all results for ranking
+          let allRows = [];
+          try {
+            const { data: allData, error: allErr } = await supabase
+              .from('round_results')
+              .select('id, competitor_name, attempt1, attempt2, attempt3, attempt4, attempt5')
+              .eq('round_id', r.id);
+
+            if (allErr) throw allErr;
+            allRows = allData || [];
+          } catch (err) {
+            allRows = [];
+          }
+
+          function prepareRowForRanking(rr) {
+            const attempts = [
+              rr.attempt1 ?? null,
+              rr.attempt2 ?? null,
+              rr.attempt3 ?? null,
+              rr.attempt4 ?? null,
+              rr.attempt5 ?? null
+            ].slice(0, attemptCount);
+            const bestRaw = computeBest(attempts);
+            let averageRaw = null, meanRaw = null;
+            if (fmt === 'ao5') averageRaw = compute_ao5(attempts);
+            if (fmt === 'mo3' || fmt === 'bo3') meanRaw = compute_mo3(attempts);
+            const hasAnyAttempt = attempts.some(a => a !== null && a !== undefined && a !== '');
+            const hasMissingAttempt = hasAnyAttempt && attempts.some(a => a === null || a === undefined || a === '');
+            return { id: rr.id, name: rr.competitor_name, attempts, bestRaw, averageRaw, meanRaw, hasAnyAttempt, hasMissingAttempt };
+          }
+
+          const preparedAll = allRows.map(prepareRowForRanking);
+
+          // Count unfinished for this round
+          const unfinishedCount = preparedAll.reduce((acc, x) => acc + (x.hasMissingAttempt ? 1 : 0), 0);
+
+          // Sort
+          function getPrimarySecondaryForSort(obj) { return getPrimarySecondary(fmt, obj); }
+          preparedAll.sort((a,b) => {
+            const as = getPrimarySecondaryForSort(a), bs = getPrimarySecondaryForSort(b);
+            const aPrimary = sortKeyValue(as.primary), bPrimary = sortKeyValue(bs.primary);
+            if (aPrimary !== bPrimary) return aPrimary - bPrimary;
+            const aSecondary = sortKeyValue(as.secondary), bSecondary = sortKeyValue(bs.secondary);
+            if (aSecondary !== bSecondary) return aSecondary - bSecondary;
+            const aBest = sortKeyValue(a.bestRaw), bBest = sortKeyValue(b.bestRaw);
+            if (aBest !== bBest) return aBest - bBest;
+            return String(a.name || '').localeCompare(String(b.name || ''));
+          });
+
+          const preparedThis = prepareRowForRanking(row);
+          const allAttemptsNull = preparedThis.attempts.every(a => a === null || a === undefined || a === '');
+          let rank = null;
+          if (!allAttemptsNull) {
+            let lastPrimary = null, lastSecondary = null, lastRank = 0;
+            for (let i = 0; i < preparedAll.length; i++) {
+              const p = preparedAll[i];
+              const ps = getPrimarySecondaryForSort(p);
+              const pPrimary = sortKeyValue(ps.primary), pSecondary = sortKeyValue(ps.secondary);
+              const currentIndexRank = i + 1;
+              if (i === 0) { lastRank = 1; lastPrimary = pPrimary; lastSecondary = pSecondary; }
+              else {
+                if (pPrimary === lastPrimary && pSecondary === lastSecondary) { /* same rank */ }
+                else { lastRank = currentIndexRank; lastPrimary = pPrimary; lastSecondary = pSecondary; }
+              }
+              if (p.id === preparedThis.id || String(p.name || '').trim() === String(preparedThis.name || '').trim()) { rank = lastRank; break; }
+            }
+          }
+
+          // Build row
+          const tr = document.createElement('tr');
+          tr.style.borderBottom = '1px solid #f0f0f0';
+          tr.style.background = '#fff';
+          tr.style.cursor = mobile ? 'pointer' : 'default';
+
+          const rankTd = document.createElement('td'); rankTd.style.padding = '8px'; rankTd.textContent = (rank === null ? '' : String(rank));
+          tr.appendChild(rankTd);
+
+          const roundTd = document.createElement('td'); roundTd.style.padding = '8px';
+          roundTd.textContent = ROUND_CODE_TO_NAME[String(r.round_code)] || String(r.round_code);
+          tr.appendChild(roundTd);
+
+          if (!mobile) {
+            for (let i = 0; i < maxAttemptCount; i++) {
+              const td = document.createElement('td'); td.style.padding = '8px';
+              const raw = preparedThis.attempts[i];
+              td.textContent = csToDisplay(raw);
+              tr.appendChild(td);
+            }
+          }
+
+          const bestTd = document.createElement('td'); bestTd.style.padding = '8px';
+          if (preparedThis.bestRaw === null || preparedThis.bestRaw === undefined) bestTd.textContent = '';
+          else if (preparedThis.bestRaw === -1) bestTd.textContent = 'DNF';
+          else bestTd.textContent = csToDisplay(preparedThis.bestRaw);
+          tr.appendChild(bestTd);
+
+          if (includeAverage) {
+            const avgTd = document.createElement('td'); avgTd.style.padding = '8px';
+            if (preparedThis.averageRaw === null || preparedThis.averageRaw === undefined) avgTd.textContent = '';
+            else if (preparedThis.averageRaw === -1) avgTd.textContent = 'DNF';
+            else avgTd.textContent = csToDisplay(preparedThis.averageRaw);
+            tr.appendChild(avgTd);
+          }
+          if (includeMean) {
+            const meanTd = document.createElement('td'); meanTd.style.padding = '8px';
+            if (preparedThis.meanRaw === null || preparedThis.meanRaw === undefined) meanTd.textContent = '';
+            else if (preparedThis.meanRaw === -1) meanTd.textContent = 'DNF';
+            else meanTd.textContent = csToDisplay(preparedThis.meanRaw);
+            tr.appendChild(meanTd);
+          }
+
+          // mobile click opens modal with round details and link to round
+          if (mobile) {
+            tr.addEventListener('click', () => {
+              const rankLine = rank === null ? '' : `#${rank}`;
+              const rankRow = `<div style="font-size:18px;font-weight:700;margin-bottom:8px">${escapeHtml(rankLine)}</div>`
+              const eventRow = `<div style="font-size:14px;font-weight:600;margin-bottom:8px">Event<br><div style="font-weight:normal;">${escapeHtml(EVENT_CODE_TO_NAME[evCode] || evCode)}</div></div>`;
+              const roundRow = `<div style="font-size:14px;font-weight:600;margin-bottom:8px">Round<br><div style="font-weight:normal;">${escapeHtml(ROUND_CODE_TO_NAME[String(r.round_code)] || String(r.round_code))}</div></div>`;
+              const linkRow = `<div style="margin-bottom:8px"><a href="#" data-nav="/${slug(compRow.name)}/${evCode}/${String(r.id)}" style="color:#1976d2;text-decoration:underline">All results</a></div>`;
+              const attemptsText = (preparedThis.attempts && preparedThis.attempts.length) ? preparedThis.attempts.map(a => (a === null || a === undefined || a === '') ? '' : csToDisplay(a)).filter(x=>x!=='').join(', ') : '';
+              const attemptsRow = `<div style="font-size:14px;font-weight:600;margin-bottom:8px">Attempts<br><div style="font-weight:normal;">${escapeHtml(attemptsText || '')}</div></div>`;
+              const avgText = (preparedThis.averageRaw === null || preparedThis.averageRaw === undefined) ? '' : (preparedThis.averageRaw === -1 ? 'DNF' : csToDisplay(preparedThis.averageRaw));
+              const avgRow = `<div style="font-size:14px;font-weight:600;margin-bottom:8px">Average<br><div style="font-weight:normal;">${escapeHtml(avgText || '')}</div></div>`;
+              const bestRow = `<div style="font-size:14px;font-weight:600;margin-bottom:8px">Best<br><div style="font-weight:normal;">${escapeHtml((preparedThis.bestRaw === null || preparedThis.bestRaw === undefined) ? '' : (preparedThis.bestRaw === -1 ? 'DNF' : csToDisplay(preparedThis.bestRaw)))}</div></div>`;
+              const html = `${rankRow}${eventRow}${roundRow}${linkRow}${attemptsRow}${avgRow}${bestRow}`;
+              showMobileDetail(html);
+            });
+          }
+
+          tbody.appendChild(tr);
+        }
+
+        table.appendChild(tbody);
+        tableWrap.appendChild(table);
+        pageWrap.appendChild(tableWrap);
+      }
+
+      container.appendChild(pageWrap);
+      container.scrollIntoView({ behavior: 'smooth' });
+      return;
+    }
+
+    async function renderPodiums(compSlug) {
+      const container = document.getElementById('podiums');
+      if (!container) {
+        console.warn('renderPodiums: #podiums element not found');
+        return;
+      }
+
+      const mobile = isMobileView();
+
+      container.innerHTML = '';
+      const loading = document.createElement('div');
+      loading.style.maxWidth = '1100px';
+      loading.style.margin = '16px auto';
+      loading.style.padding = '12px';
+      loading.style.background = '#fff';
+      loading.style.borderRadius = '8px';
+      loading.style.boxShadow = '0 6px 18px rgba(18,38,63,0.04)';
+      loading.innerHTML = `<div style="color:#666">Loading...</div>`;
+      container.appendChild(loading);
+
+      // Resolve competition row
+      const searchName = String(compSlug || '').replace(/_/g, ' ').trim();
+      let compRow = null;
+      try {
+        const { data: compData, error: compErr } = await supabase
+          .from('competitions')
+          .select('id, name')
+          .ilike('name', `%${searchName}%`)
+          .limit(1);
+        if (!compErr && compData && compData.length) compRow = compData[0];
+      } catch (e) { /* ignore */ }
+
+      if (!compRow) {
+        try {
+          const { data: allComps } = await supabase.from('competitions').select('id,name');
+          const target = String(searchName).replace(/\s+/g, '_');
+          for (const c of (allComps || [])) {
+            if (String(c.name).replace(/\s+/g, '_') === target) { compRow = c; break; }
+          }
+        } catch (e) { /* ignore */ }
+      }
+
+      if (!compRow) {
+        container.innerHTML = `<div style="max-width:1100px;margin:16px auto;color:#666">Competition not found: ${unslug(searchName)}</div>`;
+        return;
+      }
+
+      // Fetch final rounds
+      let finalRounds = [];
+      try {
+        const { data: roundsData, error: roundsErr } = await supabase
+          .from('rounds')
+          .select('id, event_id, round_code, format')
+          .eq('comp_id', compRow.id)
+          .eq('round_code', 'f')
+          .order('event_id', { ascending: true });
+
+        if (roundsErr) throw roundsErr;
+        finalRounds = roundsData || [];
+      } catch (err) {
+        console.error('renderPodiums: error fetching final rounds', err);
+        container.innerHTML = `<div style="max-width:1100px;margin:16px auto;color:#900">Error loading finals</div>`;
+        return;
+      }
+
+      container.innerHTML = '';
+      const pageWrap = document.createElement('div');
+      pageWrap.style.maxWidth = '1100px';
+      pageWrap.style.margin = '16px auto';
+      pageWrap.style.padding = '12px';
+      pageWrap.style.boxSizing = 'border-box';
+
+      const pageTitle = document.createElement('h2');
+      pageTitle.style.margin = '0 0 12px 0';
+      pageTitle.style.color = 'black';
+      pageTitle.textContent = `Podiums`;
+      pageWrap.appendChild(pageTitle);
+
+      if (!finalRounds.length) {
+        const none = document.createElement('div');
+        none.style.color = '#666';
+        none.style.marginTop = '12px';
+        none.textContent = `No final rounds found for ${compRow.name}`;
+        pageWrap.appendChild(none);
+        container.appendChild(pageWrap);
+        return;
+      }
+
+      const undeterminedEvents = [];
+      const determinedPodiums = [];
+
+      for (const fr of finalRounds) {
+        const evCode = String(fr.event_id || '').trim();
+        const fmt = (fr.format || '').toLowerCase();
+        let attemptCount = 5;
+        if (fmt === 'mo3' || fmt === 'bo3') attemptCount = 3;
+        else if (fmt === 'bo2') attemptCount = 2;
+        else if (fmt === 'bo1') attemptCount = 1;
+
+        let allRows = [];
+        try {
+          const { data: allData, error: allErr } = await supabase
+            .from('round_results')
+            .select('id, competitor_name, competitor_id, class, number, attempt1, attempt2, attempt3, attempt4, attempt5')
+            .eq('round_id', fr.id);
+
+          if (allErr) throw allErr;
+          allRows = allData || [];
+        } catch (err) {
+          undeterminedEvents.push(evCode);
+          continue;
+        }
+
+        if (!allRows.length) { undeterminedEvents.push(evCode); continue; }
+
+        // if any competitor has a missing attempt among required attempts -> undetermined
+        let anyNullAttempt = false;
+        for (const r of allRows) {
+          for (let i = 1; i <= attemptCount; i++) {
+            const val = r[`attempt${i}`];
+            if (val === null || val === undefined || val === '') { anyNullAttempt = true; break; }
+          }
+          if (anyNullAttempt) break;
+        }
+        if (anyNullAttempt) { undeterminedEvents.push(evCode); continue; }
+
+        // compute podium
+        const prepared = allRows.map(r => {
+          const attempts = [
+            r.attempt1 ?? null,
+            r.attempt2 ?? null,
+            r.attempt3 ?? null,
+            r.attempt4 ?? null,
+            r.attempt5 ?? null
+          ].slice(0, attemptCount);
+          const bestRaw = computeBest(attempts);
+          const averageRaw = (fmt === 'ao5') ? compute_ao5(attempts) : null;
+          const meanRaw = (fmt === 'mo3' || fmt === 'bo3') ? compute_mo3(attempts) : null;
+          return {
+            id: r.id,
+            name: r.competitor_name,
+            competitor_id: r.competitor_id,
+            class: r.class || '',
+            number: r.number || '',
+            attempts,
+            bestRaw,
+            averageRaw,
+            meanRaw
+          };
+        });
+
+        function rankingKeyFor(preparedRow, format) {
+          let primaryVal = null, secondaryVal = null;
+          if (format === 'ao5') { primaryVal = preparedRow.averageRaw; secondaryVal = preparedRow.bestRaw; }
+          else if (format === 'mo3') { primaryVal = preparedRow.meanRaw; secondaryVal = preparedRow.bestRaw; }
+          else { primaryVal = preparedRow.bestRaw; if (preparedRow.averageRaw !== null && preparedRow.averageRaw !== undefined) secondaryVal = preparedRow.averageRaw; else if (preparedRow.meanRaw !== null && preparedRow.meanRaw !== undefined) secondaryVal = preparedRow.meanRaw; else secondaryVal = null; }
+          function norm(v) { if (v === null || v === undefined) return Infinity; if (v === -1) return Infinity; return Number(v); }
+          return [norm(primaryVal), norm(secondaryVal), String(preparedRow.name || '').toLowerCase()];
+        }
+
+        prepared.sort((a,b) => {
+          const ka = rankingKeyFor(a, fmt), kb = rankingKeyFor(b, fmt);
+          if (ka[0] !== kb[0]) return ka[0] - kb[0];
+          if (ka[1] !== kb[1]) return ka[1] - kb[1];
+          if (ka[2] !== kb[2]) return ka[2].localeCompare(kb[2]);
+          return 0;
+        });
+
+        const podium = prepared.slice(0,3);
+        determinedPodiums.push({ eventCode: evCode, eventName: EVENT_CODE_TO_NAME[evCode] || evCode, format: fmt, attemptCount, podium, compRow, roundId: fr.id });
+      }
+
+      // If no determined podiums at all
+      if (!determinedPodiums.length) {
+        const none = document.createElement('div');
+        none.style.color = '#666';
+        none.style.marginTop = '12px';
+        none.textContent = 'There are no podiums yet.';
+        pageWrap.appendChild(none);
+
+        if (undeterminedEvents.length) {
+          const msg = document.createElement('div');
+          msg.style.marginTop = '12px';
+          msg.style.color = '#666';
+          msg.textContent = 'Podiums for the following events are yet to be determined:';
+          pageWrap.appendChild(msg);
+          const iconsWrap = document.createElement('div');
+          iconsWrap.style.marginTop = '8px';
+          for (const ev of undeterminedEvents) {
+            const img = document.createElement('img');
+            img.src = `/images/event_icons/${ev}.png`;
+            img.alt = ev;
+            img.style.height = '36px';
+            img.style.marginRight = '8px';
+            img.style.verticalAlign = 'middle';
+            iconsWrap.appendChild(img);
+          }
+          pageWrap.appendChild(iconsWrap);
+        }
+
+        container.appendChild(pageWrap);
+        return;
+      }
+
+      // If some undetermined events exist, show them
+      if (undeterminedEvents.length) {
+        const msg = document.createElement('div');
+        msg.style.marginTop = '12px';
+        msg.style.color = '#666';
+        msg.textContent = 'Podiums for the following events are yet to be determined:';
+        pageWrap.appendChild(msg);
+        const iconsWrap = document.createElement('div');
+        iconsWrap.style.marginTop = '8px';
+        for (const ev of undeterminedEvents) {
+          const img = document.createElement('img');
+          img.src = `/images/event_icons/${ev}.png`;
+          img.alt = ev;
+          img.style.height = '36px';
+          img.style.marginRight = '8px';
+          img.style.verticalAlign = 'middle';
+          iconsWrap.appendChild(img);
+        }
+        pageWrap.appendChild(iconsWrap);
+      }
+
+      // Render determined podiums
+      for (const info of determinedPodiums) {
+        const { eventCode, eventName, format, attemptCount, podium, compRow, roundId } = info;
+
+        const evHeader = document.createElement('h3');
+        evHeader.style.margin = '18px 0 8px 0';
+        evHeader.textContent = eventName;
+        pageWrap.appendChild(evHeader);
+
+        const tableWrap = document.createElement('div');
+        tableWrap.style.background = '#fff';
+        tableWrap.style.borderRadius = '8px';
+        tableWrap.style.boxShadow = '0 6px 18px rgba(18,38,63,0.04)';
+        tableWrap.style.overflowX = 'auto';
+        tableWrap.style.marginBottom = '12px';
+        tableWrap.style.padding = '12px';
+
+        const table = document.createElement('table');
+        table.style.width = '100%';
+        table.style.borderCollapse = 'collapse';
+        table.style.fontSize = '0.95rem';
+
+        // Header (omit attempts on mobile)
+        const thead = document.createElement('thead');
+        const headerRow = document.createElement('tr');
+        const headers = [
+          { key: 'rank', label: '#' },
+          { key: 'name', label: 'Name' }
+        ];
+        if (!mobile) {
+          for (let i = 1; i <= attemptCount; i++) headers.push({ key: `a${i}`, label: String(i) });
+        }
+        headers.push({ key: 'best', label: 'Best' });
+        if (format === 'ao5') headers.push({ key: 'average', label: 'Average' });
+        if (format === 'mo3' || format === 'bo3') headers.push({ key: 'mean', label: 'Mean' });
+
+        const rankingColumnKey = (format === 'ao5') ? 'average' : (format === 'mo3' ? 'mean' : 'best');
+
+        headers.forEach(h => {
+          const th = document.createElement('th');
+          th.style.padding = '8px';
+          th.style.borderBottom = '1px solid #eee';
+          th.style.textAlign = 'left';
+          th.style.background = '#f7f9fb';
+          th.style.color = '#0b3b66';
+          th.style.fontWeight = (h.key === rankingColumnKey) ? '800' : '700';
+          th.textContent = h.label;
+          headerRow.appendChild(th);
+        });
+
+        thead.appendChild(headerRow);
+        table.appendChild(thead);
+
+        const tbody = document.createElement('tbody');
+
+        for (let i = 0; i < podium.length; i++) {
+          const r = podium[i];
+          const tr = document.createElement('tr');
+          tr.style.borderBottom = '1px solid #f0f0f0';
+          tr.style.background = (i % 2 === 0) ? '#fff' : '#fbfcfe';
+          tr.style.cursor = mobile ? 'pointer' : 'default';
+
+          // Rank cell highlighted green (bright, black text)
+          const rankTd = document.createElement('td');
+          rankTd.style.padding = '8px';
+          rankTd.textContent = String(i + 1);
+          rankTd.style.background = '#7CFC00';
+          rankTd.style.color = '#000';
+          rankTd.style.fontWeight = '400';
+          tr.appendChild(rankTd);
+
+          // Name (on mobile plain text; link moved to modal)
+          const nameTd = document.createElement('td');
+          nameTd.style.padding = '8px';
+          nameTd.textContent = r.name || '';
+          tr.appendChild(nameTd);
+
+          if (!mobile) {
+            for (let j = 0; j < attemptCount; j++) {
+              const td = document.createElement('td');
+              td.style.padding = '8px';
+              td.textContent = csToDisplay(r.attempts[j]);
+              tr.appendChild(td);
+            }
+          }
+
+          const bestTd = document.createElement('td');
+          bestTd.style.padding = '8px';
+          if (r.bestRaw === null || r.bestRaw === undefined) bestTd.textContent = '';
+          else if (r.bestRaw === -1) bestTd.textContent = 'DNF';
+          else bestTd.textContent = csToDisplay(r.bestRaw);
+          if (rankingColumnKey === 'best') bestTd.style.fontWeight = '700';
+          tr.appendChild(bestTd);
+
+          if (format === 'ao5') {
+            const avgTd = document.createElement('td');
+            avgTd.style.padding = '8px';
+            if (r.averageRaw === null || r.averageRaw === undefined) avgTd.textContent = '';
+            else if (r.averageRaw === -1) avgTd.textContent = 'DNF';
+            else avgTd.textContent = csToDisplay(r.averageRaw);
+            if (rankingColumnKey === 'average') avgTd.style.fontWeight = '700';
+            tr.appendChild(avgTd);
+          }
+          if (format === 'mo3' || format === 'bo3') {
+            const meanTd = document.createElement('td');
+            meanTd.style.padding = '8px';
+            if (r.meanRaw === null || r.meanRaw === undefined) meanTd.textContent = '';
+            else if (r.meanRaw === -1) meanTd.textContent = 'DNF';
+            else meanTd.textContent = csToDisplay(r.meanRaw);
+            if (rankingColumnKey === 'mean') meanTd.style.fontWeight = '700';
+            tr.appendChild(meanTd);
+          }
+
+          // mobile click opens modal with details and link to competitor results
+          if (mobile) {
+            tr.addEventListener('click', () => {
+              const nameLine = `${r.name || ''} #${i+1}`;
+              const nameRow = `<div style="font-size:18px;font-weight:700;margin-bottom:8px">${escapeHtml(nameLine)}</div>`;
+              const metaRow = `<div style="font-size:14px;font-weight:600;margin-bottom:8px">Name<br><div style="font-weight:normal;">${escapeHtml(r.name || '')} ${escapeHtml(r.class || '')}${r.number ? `(${escapeHtml(String(r.number))})` : ''}</div></div>`;
+              const linkRow = `<div style="margin-bottom:8px"><a href="#" data-nav="/${slug(compRow.name)}/competitors/${String(r.name || '').replace(/\s+/g, '_')}" style="color:#1976d2;text-decoration:underline">All results</a></div>`;
+              const attemptsText = (r.attempts && r.attempts.length) ? r.attempts.map(a => (a === null || a === undefined || a === '') ? '' : csToDisplay(a)).filter(x=>x!=='').join(', ') : '';
+              const attemptsRow = `<div style="font-size:14px;font-weight:600;margin-bottom:8px">Attempts<br><div style="font-weight:normal;">${escapeHtml(attemptsText || '')}</div></div>`;
+              const avgText = (format === 'ao5') ? (r.averageRaw === null || r.averageRaw === undefined ? '' : (r.averageRaw === -1 ? 'DNF' : csToDisplay(r.averageRaw))) : ((format === 'mo3' || format === 'bo3') ? (r.meanRaw === null || r.meanRaw === undefined ? '' : (r.meanRaw === -1 ? 'DNF' : csToDisplay(r.meanRaw))) : '');
+              const avgRow = `<div style="font-size:14px;font-weight:600;margin-bottom:8px">Average<br><div style="font-weight:normal;">${escapeHtml(avgText || '')}</div></div>`;
+              const bestRow = `<div style="font-size:14px;font-weight:600;margin-bottom:8px">Best<br><div style="font-weight:normal;">${escapeHtml((r.bestRaw === null || r.bestRaw === undefined) ? '' : (r.bestRaw === -1 ? 'DNF' : csToDisplay(r.bestRaw)))}</div></div>`;
+              const html = `${nameRow}${metaRow}${linkRow}${attemptsRow}${avgRow}${bestRow}`;
+              showMobileDetail(html);
+            });
+          }
+
+          tbody.appendChild(tr);
+        }
+
+        table.appendChild(tbody);
+        tableWrap.appendChild(table);
+        pageWrap.appendChild(tableWrap);
+      }
+
+      container.appendChild(pageWrap);
+      container.scrollIntoView({ behavior: 'smooth' });
+      return;
+    }
+
+    // DOM refs
+    const overlay = document.getElementById('sidebar-overlay');
+    const sidebar = document.getElementById('live-sidebar');
+    const btnOpen = document.getElementById('btn-open-sidebar'); // already present in header
+    const sbBack = document.getElementById('sb-back');
+    const sbCompetitors = document.getElementById('sb-competitors');
+    const sbPodiums = document.getElementById('sb-podiums');
+    const sidebarEventsWrap = document.getElementById('sidebar-events');
+
+    // Utility: parse current route (reuse your getRoute if present)
+    function parsePathForSidebar(path) {
+      const p = (path || '/').replace(/^\//, '').replace(/\/$/, '');
+      if (!p) return { view: 'main', compSlug: null };
+      const parts = p.split('/').map(s => decodeURIComponent(s || ''));
+      const compSlug = parts[0] || null;
+      return { compSlug };
+    }
+
+    // Open / close
+    function openSidebar() {
+      document.body.classList.add('sidebar-open');
+      sidebar.setAttribute('aria-hidden', 'false');
+      overlay.setAttribute('aria-hidden', 'false');
+      // populate events for current competition
+      const { compSlug } = parsePathForSidebar(location.pathname);
+      if (compSlug) populateSidebar(compSlug).catch(()=>{});
+      // focus first button for accessibility
+      setTimeout(() => {
+        const firstBtn = sidebar.querySelector('.ev-head');
+        if (firstBtn) firstBtn.focus();
+      }, 120);
+    }
+
+    function closeSidebar() {
+      document.body.classList.remove('sidebar-open');
+      sidebar.setAttribute('aria-hidden', 'true');
+      overlay.setAttribute('aria-hidden', 'true');
+    }
+
+    // Close when clicking overlay
+    overlay.addEventListener('click', () => closeSidebar());
+
+    // Wire header menu button
+    if (btnOpen) {
+      btnOpen.addEventListener('click', (e) => {
+        e.preventDefault();
+        openSidebar();
+      });
+    }
+
+    // Sidebar top buttons behavior
+    sbBack.addEventListener('click', () => {
+      closeSidebar();
+      navigate('/');
+    });
+
+    sbCompetitors.addEventListener('click', () => {
+      const { compSlug } = parsePathForSidebar(location.pathname);
+      if (!compSlug) return;
+      closeSidebar();
+      const path = `/${encodeURIComponent(compSlug)}/competitors`;
+      navigate(path);
+    });
+
+    sbPodiums.addEventListener('click', () => {
+      const { compSlug } = parsePathForSidebar(location.pathname);
+      if (!compSlug) return;
+      closeSidebar();
+      const path = `/${encodeURIComponent(compSlug)}/podiums`;
+      navigate(path);
+    });
+
+    // Populate sidebar: fetch rounds grouped by event for a competition slug
+    async function populateSidebar(compSlug) {
+      if (!supabase) {
+        sidebarEventsWrap.innerHTML = '<div style="color:#900">Realtime unavailable</div>';
+        return;
+      }
+
+      sidebarEventsWrap.innerHTML = '<div style="color:#666">Loading...</div>';
+
+      // Resolve competition row (similar logic to other functions)
+      const searchName = String(compSlug || '').replace(/_/g, ' ').trim();
+      let compRow = null;
+      try {
+        const { data: compData, error: compErr } = await supabase
+          .from('competitions')
+          .select('id, name')
+          .ilike('name', `%${searchName}%`)
+          .limit(1);
+        if (!compErr && compData && compData.length) compRow = compData[0];
+      } catch (e) { /* ignore */ }
+
+      if (!compRow) {
+        // fallback: fetch all and match slug
+        try {
+          const { data: allComps } = await supabase.from('competitions').select('id,name');
+          const target = String(searchName).replace(/\s+/g, '_');
+          for (const c of (allComps || [])) {
+            if (String(c.name).replace(/\s+/g, '_') === target) { compRow = c; break; }
+          }
+        } catch (e) { /* ignore */ }
+      }
+
+      if (!compRow) {
+        sidebarEventsWrap.innerHTML = `<div style="color:#666">Competition not found</div>`;
+        return;
+      }
+
+      // Fetch rounds for this competition
+      let rounds = [];
+      try {
+        const { data: roundsData, error: roundsErr } = await supabase
+          .from('rounds')
+          .select('id, event_id, round_code, format')
+          .eq('comp_id', compRow.id)
+          .order('id', { ascending: true });
+
+        if (roundsErr) throw roundsErr;
+        rounds = roundsData || [];
+      } catch (err) {
+        console.error('populateSidebar: error fetching rounds', err);
+        sidebarEventsWrap.innerHTML = `<div style="color:#900">Error loading events</div>`;
+        return;
+      }
+
+      // Group rounds by event_id
+      const eventsMap = new Map();
+      for (const r of rounds) {
+        const ev = String(r.event_id || '').trim();
+        if (!eventsMap.has(ev)) eventsMap.set(ev, []);
+        eventsMap.get(ev).push(r);
+      }
+
+      // Render events
+      sidebarEventsWrap.innerHTML = '';
+      if (!eventsMap.size) {
+        sidebarEventsWrap.innerHTML = '<div style="color:#666">No events found</div>';
+        return;
+      }
+
+      for (const [evCode, evRounds] of eventsMap.entries()) {
+        const evName = EVENT_CODE_TO_NAME[evCode] || evCode || 'Event';
+
+        const evBlock = document.createElement('div');
+        evBlock.className = 'sidebar-event';
+        evBlock.tabIndex = 0;
+
+        const head = document.createElement('div');
+        head.className = 'ev-head';
+        head.setAttribute('role', 'button');
+        head.setAttribute('aria-expanded', 'false');
+
+        const icon = document.createElement('div');
+        icon.className = 'ev-icon';
+        const img = document.createElement('img');
+        img.src = `/images/event_icons/${evCode}.png`;
+        img.alt = evName;
+        img.style.width = '28px';
+        img.style.height = '28px';
+        img.style.objectFit = 'contain';
+        img.onerror = function () { this.style.display = 'none'; };
+        icon.appendChild(img);
+
+        const title = document.createElement('div');
+        title.className = 'ev-title';
+        title.textContent = evName; // show event name instead of code
+
+        head.appendChild(icon);
+        head.appendChild(title);
+
+        // Round list (hidden by default)
+        const roundList = document.createElement('div');
+        roundList.className = 'round-list';
+
+        evRounds.forEach(r => {
+          const roundLabel = ROUND_CODE_TO_NAME[r.round_code] || r.round_code || 'Round';
+          const ri = document.createElement('div');
+          ri.className = 'round-item';
+          ri.tabIndex = 0;
+          ri.textContent = roundLabel; // show round name instead of code
+          ri.addEventListener('click', (e) => {
+            e.stopPropagation();
+            closeSidebar();
+            const compPathSlug = compSlug; // already slug form
+            const path = `/${encodeURIComponent(compPathSlug)}/${encodeURIComponent(String(evCode))}/${encodeURIComponent(String(r.id))}`;
+            navigate(path);
+          });
+          ri.addEventListener('keydown', (ev) => {
+            if (ev.key === 'Enter' || ev.key === ' ') { ev.preventDefault(); ri.click(); }
+          });
+          roundList.appendChild(ri);
+        });
+
+        // Toggle open/close rounds
+        head.addEventListener('click', () => {
+          const isOpen = evBlock.classList.toggle('open');
+          head.setAttribute('aria-expanded', String(isOpen));
+        });
+        head.addEventListener('keydown', (ev) => {
+          if (ev.key === 'Enter' || ev.key === ' ') { ev.preventDefault(); head.click(); }
+        });
+
+        evBlock.appendChild(head);
+        evBlock.appendChild(roundList);
+        sidebarEventsWrap.appendChild(evBlock);
+      }
+    }
+
+    function attachRouteHooks() {
+
+      if (typeof window.navigate === 'function' && !window.__sidebar_wrapped_navigate) {
+        const orig = window.navigate;
+        window.navigate = async function (path, opts) {
+          const res = await orig(path, opts);
+          return res;
+        };
+        window.__sidebar_wrapped_navigate = true;
+      }
+    }
+
+    attachRouteHooks();
+
+    window._sidebar = { openSidebar, closeSidebar, populateSidebar };
+
+    function slug(str) {
+      if (str === null || str === undefined) return '';
+      return String(str).replace(/ /g, '_');
+    }
+
+    function unslug(str) {
+      if (str === null || str === undefined) return '';
+      return String(str).replace(/_/g, ' ');
+    }
+
+    function getRoute(path) {
+      const raw = (path || '/').replace(/^\//, '').replace(/\/$/, '');
+      if (!raw) return { view: 'main', compSlug: null };
+
+      const parts = raw.split('/').map(p => decodeURIComponent(p || ''));
+
+      // /COMPETITION_NAME
+      if (parts.length === 1) {
+        const compSlug = parts[0];
+        // special reserved names
+        if (compSlug.toLowerCase() === 'favicon.ico') return { view: 'main' };
+        return { view: 'competition-main-page', compSlug };
+      }
+
+      // /COMPETITION_NAME/competitors
+      if (parts.length === 2 && parts[1].toLowerCase() === 'competitors') {
+        return { view: 'competitor-list', compSlug: parts[0] };
+      }
+
+      // /COMPETITION_NAME/competitors/COMPETITOR_NAME
+      if (parts.length === 3 && parts[1].toLowerCase() === 'competitors') {
+        return { view: 'competitor-results', compSlug: parts[0], competitorName: parts[2] };
+      }
+
+      // /COMPETITION_NAME/podiums
+      if (parts.length === 2 && parts[1].toLowerCase() === 'podiums') {
+        return { view: 'podiums', compSlug: parts[0] };
+      }
+
+      // /COMPETITION_NAME/EVENT_ID/ROUND_ID  (leaderboard)
+      if (parts.length >= 3) {
+        return { view: 'leaderboard', compSlug: parts[0], eventId: parts[1], roundId: parts[2] };
+      }
+
+      // fallback
+      return { view: 'main' };
+    }
+
+    // Updated navigate to support /login and /:comp/:event/:round/edit routes
+    function navigate(path, opts = {}) {
+      document.getElementById('btn-open-sidebar').style.display = (path === '/') ? 'none' : '';
+
+      const { replace = false } = opts;
+      const normalized = path && path.startsWith('/') ? path : '/' + String(path || '').replace(/^\//, '');
+      if (replace) history.replaceState({}, '', normalized);
+      else history.pushState({}, '', normalized);
+
+      // parse route
+      const parts = normalized.split('/').filter(Boolean);
+
+      // root -> main
+      if (parts.length === 0) {
+        showView('main');
+        return;
+      }
+
+      // /login
+      if (parts.length === 1 && parts[0] === 'login') {
+        showView('login');
+        return;
+      }
+
+      // /:compSlug
+      const compSlug = parts[0];
+
+      // /:compSlug/competitors or /:compSlug/competitors/:competitorName
+      if (parts.length >= 2 && parts[1] === 'competitors') {
+        if (parts.length === 2) {
+          showView('competitor-list', { compSlug });
+          return;
+        } else {
+          const competitorName = decodeURIComponent(parts.slice(2).join('/'));
+          showView('competitor-results', { compSlug, competitorName });
+          return;
+        }
+      }
+
+      // /:compSlug/podiums
+      if (parts.length === 2 && parts[1] === 'podiums') {
+        showView('podiums', { compSlug });
+        return;
+      }
+
+      // /:compSlug/:eventId/:roundId/edit  (edit mode)
+      if (parts.length >= 4 && parts[3] === 'edit') {
+        const eventId = parts[1];
+        const roundId = parts[2];
+        // show edit view and render editor
+        showView('edit', { compSlug, eventId, roundId });
+        return;
+      }
+
+      // /:compSlug/:eventId/:roundId (leaderboard)
+      if (parts.length >= 3) {
+        const eventId = parts[1];
+        const roundId = parts[2];
+        showView('leaderboard', { compSlug, eventId, roundId });
+        return;
+      }
+
+      // fallback to competition main page
+      showView('competition-main-page', { compSlug });
+    }
+
+
+    // Updated showView to include login and edit views
+    function showView(id, params = {}) {
+
+      if (isMobileView()) {
+        document.getElementById('club-logo').style.display = 'none';
+        document.getElementById('ig-icon').style.display = 'none';
+        document.getElementById('btn-login-top').style.display = 'none';
+        document.getElementById('btn-signout-top').style.display = 'none';
+      }
+      
+      const views = {
+        'main': document.getElementById('main'),
+        'competition-main-page': document.getElementById('competition-main-page'),
+        'leaderboard': document.getElementById('leaderboard'),
+        'competitor-list': document.getElementById('competitor-list'),
+        'competitor-results': document.getElementById('competitor-results'),
+        'podiums': document.getElementById('podiums'),
+        'login': document.getElementById('login'),
+        'edit': document.getElementById('edit-round')
+      };
+
+      // hide all views
+      Object.values(views).forEach(el => {
+        if (!el) return;
+        el.style.display = 'none';
+      });
+
+      // show requested view
+      const target = views[id];
+      if (!target) {
+        console.warn('showView: unknown view id', id);
+        return;
+      }
+      target.style.display = '';
+
+      // optional small UI updates per view
+      if (id === 'competition-main-page') {
+        const compSlug = params.compSlug || null;
+        renderCompetitionMainPage(compSlug).catch(()=>{});
+        return;
+      }
+
+      if (id === 'leaderboard') {
+        const { compSlug, eventId, roundId } = params;
+        renderLeaderboard({ compSlug, eventId, roundId }).catch(err => {
+          console.error('renderLeaderboard error', err);
+        });
+        return;
+      }
+
+      if (id === 'competitor-list') {
+        renderCompetitorList(params.compSlug).catch(()=>{});
+        return;
+      }
+
+      if (id === 'competitor-results') {
+        renderCompetitorResults(params.compSlug, params.competitorName).catch(()=>{});
+        return;
+      }
+
+      if (id === 'podiums') {
+        renderPodiums(params.compSlug).catch(()=>{});
+        return;
+      }
+
+      if (id === 'login') {
+        showLoginView();
+        return;
+      }
+
+      if (id === 'edit') {
+        // params: compSlug, eventId, roundId
+        // renderEditRound will populate #edit-round
+        renderEditRound(params.compSlug, params.eventId, params.roundId).catch(err => {
+          console.error('renderEditRound error', err);
+        });
+        return;
+      }
+
+      // default: if 'main' show competitions list
+      if (id === 'main') {
+        fetchCompetitions().catch(()=>{});
+      }
+    }
+
+
+
+
+    // handle back/forward
+    window.addEventListener('popstate', () => {
+      const route = getRoute(location.pathname);
+      navigate(location.pathname, { replace: true });
+    });
+
+    document.addEventListener('click', (ev) => {
+      const el = ev.target.closest && ev.target.closest('.comp-item');
+      if (!el) return;
+      ev.preventDefault();
+      // prefer data-slug attribute if present
+      const ds = el.getAttribute && el.getAttribute('data-slug');
+      if (ds) {
+        navigate('/' + encodeURIComponent(ds));
+        return;
+      }
+      // otherwise find the name text inside
+      const nameEl = el.querySelector && (el.querySelector('.comp-name') || el.querySelector('div'));
+      const compName = nameEl ? nameEl.textContent.trim() : null;
+      if (!compName) return;
+      const s = slug(compName);
+      navigate('/' + encodeURIComponent(s));
+    });
+
+    navigate(location.pathname);
+
+  </script>
+</body>
+</html>  

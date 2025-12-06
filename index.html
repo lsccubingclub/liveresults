@@ -17,8 +17,9 @@
   <link rel="apple-touch-icon" href="/images/favicon.png">
   <link rel="apple-touch-icon" sizes="180x180" href="/images/favicon.png">
 
-  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
 
   <link href="https://fonts.googleapis.com/css2?family=Roboto&display=swap" rel="stylesheet">
@@ -28,6 +29,20 @@
       padding: 0;
     }
     body { font-family: 'Roboto', sans-serif; background: white; padding: 0; box-sizing: border-box; }
+
+    body {
+      font-size: 1rem; /* base size */
+    }
+
+    @media (max-width: 640px) {
+      body {
+        font-size: 1.2rem; /* bump up text on small screens */
+      }
+      .container {
+        padding: 1rem;
+      }
+    }
+
 
     .logo-badge {
       position: relative;
@@ -196,12 +211,12 @@
     <div id="header-left" style="display:flex; align-items:center; gap:12px;">
       <!-- menu image button (leftmost) -->
       <button id="btn-open-sidebar" aria-label="Open menu" class="menu-btn" style="background:none;border:0;padding:0;font-size:x-large;color:white;cursor:pointer; display:none;" >
-        <img id="menu-icon" src="/images/menu_icon.png" loading="lazy" alt="menu" style="height:36px;width:36px;display:block;">
+        <img id="menu-icon" src="/images/menu_icon.png" alt="menu" style="height:36px;width:36px;display:block;">
       </button>
 
       <div class="logo-badge">
         <a id="club-logo" href="https://lsccubingclub.netlify.app" target="_blank" aria-label="Home">
-          <img src="/images/clublogo.png" loading="lazy"alt="Club Logo" />
+          <img src="/images/clublogo.png" alt="Club Logo"/>
         </a>
       </div>
     </div>
@@ -210,10 +225,10 @@
 
     <div style ="display:flex;align-items:center;gap:12px;">
       <a >
-        <img src="/images/instagram_icon.png" loading="lazy" alt="Instagram" id="ig-icon" href="https://instagram.com/lsccubingclub" target="_blank" aria-label="Instagram"/>
+        <img src="/images/instagram_icon.png" alt="Instagram" id="ig-icon" href="https://instagram.com/lsccubingclub" target="_blank" aria-label="Instagram"/>
       </a>
-      <img src="/images/login_button.png" loading="lazy" alt="Login" id="btn-login-top">
-      <img src="/images/signout_button.png" loading="lazy" alt="Login" id="btn-signout-top" style="display:none;">
+      <img src="/images/login_button.png" alt="Login" id="btn-login-top">
+      <img src="/images/signout_button.png" alt="Login" id="btn-signout-top" style="display:none;">
 
     </div>
   </header>
@@ -1547,7 +1562,13 @@
           scheduleRenderLeaderboardDebounced({ compSlug, eventId, roundId });
         });
 
-        channel.subscribe().catch(()=>{});
+        channel.subscribe((status) => {
+          if (status === 'SUBSCRIBED') {
+            console.log('Subscribed!');
+          } else {
+            console.error('Subscription failed:', status);
+          }
+        });
         __currentLeaderboardSubscription = channel;
       } catch (err) {
         console.warn('renderLeaderboard: realtime subscription failed', err);
@@ -2744,7 +2765,6 @@
             img.style.height = '36px';
             img.style.marginRight = '8px';
             img.style.verticalAlign = 'middle';
-            img.loading = 'lazy';
             iconsWrap.appendChild(img);
           }
           pageWrap.appendChild(iconsWrap);
@@ -2770,7 +2790,6 @@
           img.style.height = '36px';
           img.style.marginRight = '8px';
           img.style.verticalAlign = 'middle';
-          img.loading = 'lazy';
           iconsWrap.appendChild(img);
         }
         pageWrap.appendChild(iconsWrap);
@@ -3080,7 +3099,6 @@
         img.style.width = '28px';
         img.style.height = '28px';
         img.style.objectFit = 'contain';
-        img.loading = 'lazy';
         img.onerror = function () { this.style.display = 'none'; };
         icon.appendChild(img);
 

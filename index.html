@@ -196,12 +196,12 @@
     <div id="header-left" style="display:flex; align-items:center; gap:12px;">
       <!-- menu image button (leftmost) -->
       <button id="btn-open-sidebar" aria-label="Open menu" class="menu-btn" style="background:none;border:0;padding:0;font-size:x-large;color:white;cursor:pointer; display:none;" >
-        <img id="menu-icon" src="/images/menu_icon.png" alt="menu" style="height:36px;width:36px;display:block;">
+        <img id="menu-icon" src="/images/menu_icon.png" loading="lazy" alt="menu" style="height:36px;width:36px;display:block;">
       </button>
 
       <div class="logo-badge">
         <a id="club-logo" href="https://lsccubingclub.netlify.app" target="_blank" aria-label="Home">
-          <img src="/images/clublogo.png" alt="Club Logo" />
+          <img src="/images/clublogo.png" loading="lazy"alt="Club Logo" />
         </a>
       </div>
     </div>
@@ -210,10 +210,10 @@
 
     <div style ="display:flex;align-items:center;gap:12px;">
       <a >
-        <img src="/images/instagram_icon.png" alt="Instagram" id="ig-icon" href="https://instagram.com/lsccubingclub" target="_blank" aria-label="Instagram"/>
+        <img src="/images/instagram_icon.png" loading="lazy" alt="Instagram" id="ig-icon" href="https://instagram.com/lsccubingclub" target="_blank" aria-label="Instagram"/>
       </a>
-      <img src="/images/login_button.png" alt="Login" id="btn-login-top">
-      <img src="/images/signout_button.png" alt="Login" id="btn-signout-top" style="display:none;">
+      <img src="/images/login_button.png" loading="lazy" alt="Login" id="btn-login-top">
+      <img src="/images/signout_button.png" loading="lazy" alt="Login" id="btn-signout-top" style="display:none;">
 
     </div>
   </header>
@@ -223,7 +223,7 @@
     <div style="background:#fff;border-radius:8px;padding:12px;box-shadow:0 6px 18px rgba(18,38,63,0.04);">
 
       <div style="display:flex;gap:8px;align-items:center;margin-bottom:12px;">
-        <input id="competitions-search" placeholder="Search competitions (name, venue, year)" style="flex:1;padding:8px 10px;border:1px solid #ddd;border-radius:6px;font-size:0.95rem;">
+        <input id="competitions-search" placeholder="Search competitions" style="flex:1;padding:8px 10px;border:1px solid #ddd;border-radius:6px;font-size:0.95rem;">
       </div>
 
       <div id="competitions-list" aria-live="polite" style="display:block;">
@@ -256,7 +256,7 @@
   <main id="competitor-list" style="display:none">
     <div style="max-width:1100px;margin:16px auto;padding:12px;background:#fff;border-radius:8px;box-shadow:0 6px 18px rgba(18,38,63,0.04);">
       <div style="display:flex;gap:8px;align-items:center;margin-bottom:12px;">
-        <input id="competitors-search" placeholder="Search competitors (name, class, number)" style="flex:1;padding:8px 10px;border:1px solid #ddd;border-radius:6px;font-size:0.95rem;">
+        <input id="competitors-search" placeholder="Search competitors" style="flex:1;padding:8px 10px;border:1px solid #ddd;border-radius:6px;font-size:0.95rem;">
         <button id="competitors-refresh" style="padding:8px 12px;border-radius:6px;border:1px solid #ddd;background:#fff;cursor:pointer;">Refresh</button>
       </div>
 
@@ -627,6 +627,7 @@
         img.style.width = '36px';
         img.style.height = '36px';
         img.style.objectFit = 'contain';
+        img.loading = 'lazy';
 
         iconWrap.appendChild(img);
         card.appendChild(iconWrap);
@@ -2743,6 +2744,7 @@
             img.style.height = '36px';
             img.style.marginRight = '8px';
             img.style.verticalAlign = 'middle';
+            img.loading = 'lazy';
             iconsWrap.appendChild(img);
           }
           pageWrap.appendChild(iconsWrap);
@@ -2768,6 +2770,7 @@
           img.style.height = '36px';
           img.style.marginRight = '8px';
           img.style.verticalAlign = 'middle';
+          img.loading = 'lazy';
           iconsWrap.appendChild(img);
         }
         pageWrap.appendChild(iconsWrap);
@@ -3077,6 +3080,7 @@
         img.style.width = '28px';
         img.style.height = '28px';
         img.style.objectFit = 'contain';
+        img.loading = 'lazy';
         img.onerror = function () { this.style.display = 'none'; };
         icon.appendChild(img);
 

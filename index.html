@@ -1194,7 +1194,7 @@
         const meanRaw = (format === 'mo3' || format === 'bo3') ? compute_mo3(attempts) : null;
         const allAttemptsNull = attempts.every(a => a === null || a === undefined || a === '');
         const hasAnyAttempt = attempts.some(a => a !== null && a !== undefined && a !== '');
-        const hasMissingAttempt = hasAnyAttempt && attempts.some(a => a === null || a === undefined || a === '');
+        const hasMissingAttempt = attempts.some(a => a === null || a === undefined || a === '');
         return {
           id: r.id,
           name: r.competitor_name,
@@ -2415,7 +2415,7 @@
             if (fmt === 'ao5') averageRaw = compute_ao5(attempts);
             if (fmt === 'mo3' || fmt === 'bo3') meanRaw = compute_mo3(attempts);
             const hasAnyAttempt = attempts.some(a => a !== null && a !== undefined && a !== '');
-            const hasMissingAttempt = hasAnyAttempt && attempts.some(a => a === null || a === undefined || a === '');
+            const hasMissingAttempt = attempts.some(a => a === null || a === undefined || a === '');
             return { id: rr.id, name: rr.competitor_name, attempts, bestRaw, averageRaw, meanRaw, hasAnyAttempt, hasMissingAttempt };
           }
 

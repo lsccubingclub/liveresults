@@ -9,6 +9,18 @@
     href="/images/favicon.png"
   />
 
+  <!-- PNG favicon for modern browsers -->
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon.png">
+
+  <!-- Apple Touch Icon (for iPhone/iPad home screen) -->
+  <link rel="apple-touch-icon" href="/images/favicon.png">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/favicon.png">
+
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+
+
   <link href="https://fonts.googleapis.com/css2?family=Roboto&display=swap" rel="stylesheet">
   <style>
     html, body {
@@ -877,10 +889,16 @@
     initLoginButtons();
 
 
-    // Simple mobile detection
+    // Enhanced mobile + orientation detection
     function isMobileView() {
-      return window.innerWidth <= 640; // tweak breakpoint as needed
+      const ua = navigator.userAgent.toLowerCase();
+      const isPhone = /iphone|android.*mobile/.test(ua);
+      const isTablet = /ipad|android(?!.*mobile)/.test(ua);
+      const isPortrait = window.matchMedia("(orientation: portrait)").matches;
+
+      return ((isPhone || isTablet) && isPortrait || (window.innerWidth <= 640));
     }
+
 
     // Debounce helper
     function debounce(fn, wait = 200) {

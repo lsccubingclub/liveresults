@@ -67,7 +67,7 @@
       inset: -6px;
     }
 
-    #ig-icon, #btn-login-top{
+    #btn-login-top{
       height: 35px;
       cursor: pointer;
     }
@@ -216,7 +216,7 @@
 
       <div class="logo-badge">
         <a id="club-logo" href="https://lsccubingclub.netlify.app" target="_blank" aria-label="Home">
-          <img src="/images/clublogo.png" alt="Club Logo"/>
+          <img src="/images/club_logo.png" alt="Club Logo"/>
         </a>
       </div>
     </div>
@@ -224,9 +224,6 @@
     <h1 id="club-name">LSC Cubing Club Live</h1>
 
     <div style ="display:flex;align-items:center;gap:12px;">
-      <a >
-        <img src="/images/instagram_icon.png" alt="Instagram" id="ig-icon" href="https://instagram.com/lsccubingclub" target="_blank" aria-label="Instagram"/>
-      </a>
       <img src="/images/login_button.png" alt="Login" id="btn-login-top">
       <img src="/images/signout_button.png" alt="Login" id="btn-signout-top" style="display:none;">
 
@@ -346,11 +343,11 @@
     let __leaderboardDebounceTimer = null;
     let __leaderboardCurrentParams = null;
 
-    let __currentLeaderboardSubscription = null;
-
     let competitionsCache = [];
 
     async function fetchCompetitions() {
+      document.getElementById('club-name').textContent = 'LSC Cubing Club Live';
+
       listEl.innerHTML = '<div style="color:#666">Loading competitions...</div>';
       const { data, error } = await supabase
         .from('competitions')
@@ -382,6 +379,8 @@
      * Clicking an item navigates to /COMPETITION_NAME (URL-encoded slug).
      */
     function renderCompetitions(list) {
+      document.getElementById('club-name').textContent = 'LSC Cubing Club Live';
+
       if (!Array.isArray(list) || list.length === 0) {
         listEl.innerHTML = '<div style="color:#666">No competitions found</div>';
         return;
@@ -452,6 +451,8 @@
 
 
     async function renderCompetitionMainPage(compSlug) {
+      document.getElementById('club-name').textContent = unslug(compSlug);
+
       const container = document.getElementById('competition-main-page');
 
       // Clear container and show loading state
@@ -1112,7 +1113,13 @@
     }
 
     async function renderLeaderboard(params = {}) {
-      const { compSlug, eventId, roundId } = params || {};
+      const { compSlug, eventId, roundId, silent = false } = params || {};
+
+      // Update header immediately (safe to do even in silent mode)
+      try {
+        document.getElementById('club-name').textContent = unslug(compSlug);
+      } catch (e) { /* ignore */ }
+
       const container = document.getElementById('leaderboard');
       if (!container) {
         console.warn('renderLeaderboard: #leaderboard element not found');
@@ -1121,23 +1128,20 @@
 
       const mobile = isMobileView();
 
-      // Clear previous content and subscription
-      container.innerHTML = '';
-      if (__currentLeaderboardSubscription && typeof __currentLeaderboardSubscription.unsubscribe === 'function') {
-        try { __currentLeaderboardSubscription.unsubscribe(); } catch (e) { /* ignore */ }
-        __currentLeaderboardSubscription = null;
+      // Only clear and show loading when NOT silent
+      let loading;
+      if (!silent) {
+        container.innerHTML = '';
+        loading = document.createElement('div');
+        loading.style.maxWidth = '1100px';
+        loading.style.margin = '16px auto';
+        loading.style.padding = '12px';
+        loading.style.background = '#fff';
+        loading.style.borderRadius = '8px';
+        loading.style.boxShadow = '0 6px 18px rgba(18,38,63,0.04)';
+        loading.innerHTML = `<div style="color:#666">Loading...</div>`;
+        container.appendChild(loading);
       }
-
-      // Loading UI
-      const loading = document.createElement('div');
-      loading.style.maxWidth = '1100px';
-      loading.style.margin = '16px auto';
-      loading.style.padding = '12px';
-      loading.style.background = '#fff';
-      loading.style.borderRadius = '8px';
-      loading.style.boxShadow = '0 6px 18px rgba(18,38,63,0.04)';
-      loading.innerHTML = `<div style="color:#666">Loading...</div>`;
-      container.appendChild(loading);
 
       // Resolve round metadata
       let roundRow = null;
@@ -1168,7 +1172,11 @@
           }
         }
         if (!roundRow) {
-          loading.innerHTML = `<div style="color:#900">Round not found</div>`;
+          if (!silent) {
+            loading.innerHTML = `<div style="color:#900">Round not found</div>`;
+          } else {
+            console.warn('renderLeaderboard: round not found (silent update)');
+          }
           return;
         }
         if (!compRowName && roundRow && roundRow.comp_id) {
@@ -1179,7 +1187,7 @@
         }
       } catch (err) {
         console.error('renderLeaderboard: error resolving round', err);
-        loading.innerHTML = `<div style="color:#900">Error loading round</div>`;
+        if (!silent) loading.innerHTML = `<div style="color:#900">Error loading round</div>`;
         return;
       }
 
@@ -1216,7 +1224,7 @@
         }));
       } catch (err) {
         console.error('renderLeaderboard: error fetching results', err);
-        loading.innerHTML = `<div style="color:#900">Error loading results</div>`;
+        if (!silent) loading.innerHTML = `<div style="color:#900">Error loading results</div>`;
         return;
       }
 
@@ -1293,8 +1301,7 @@
       const advanceThreshold = getAdvanceThreshold(roundRow);
       const unfinishedCount = prepared.reduce((acc, row) => acc + (row.hasMissingAttempt ? 1 : 0), 0);
 
-      // Build UI
-      container.innerHTML = '';
+      // Build UI into a detached wrapper (do not touch DOM until fully ready)
       const wrapper = document.createElement('div');
       wrapper.style.maxWidth = '1100px';
       wrapper.style.margin = '16px auto';
@@ -1310,7 +1317,6 @@
       title.textContent = `${EVENT_CODE_TO_NAME[String(roundRow.event_id)] || String(roundRow.event_id)} — ${ROUND_CODE_TO_NAME[String(roundRow.round_code)] || String(roundRow.round_code)}`;
       wrapper.appendChild(title);
 
-      // Desktop table (original behavior)
       if (!mobile) {
         const table = document.createElement('table');
         table.style.width = '100%';
@@ -1545,39 +1551,24 @@
       }
 
       wrapper.classList.add('leaderboard-wrapper');
+
       try { attachInputLiveButtonIfAuthorized(compRowName || compSlug || '', roundRow, { wrapper }); } catch (e) { console.warn('attachInputLiveButtonIfAuthorized failed', e); }
+      
 
-      container.appendChild(wrapper);
-
-      // realtime subscription (unchanged)
+      // Replace DOM only after everything is ready (this makes silent updates appear atomic)
       try {
-        const channel = supabase.channel(`public:round_results:round_id=eq.${roundRow.id}`);
-        if (__currentLeaderboardSubscription && typeof __currentLeaderboardSubscription.unsubscribe === 'function') {
-          try { __currentLeaderboardSubscription.unsubscribe(); } catch (e) {}
-          __currentLeaderboardSubscription = null;
-        }
-
-        channel.on('postgres_changes', { event: '*', schema: 'public', table: 'round_results', filter: `round_id=eq.${roundRow.id}` }, payload => {
-          // on change, re-render (debounced)
-          scheduleRenderLeaderboardDebounced({ compSlug, eventId, roundId });
-        });
-
-        channel.subscribe((status) => {
-          if (status === 'SUBSCRIBED') {
-            console.log('Subscribed!');
-          } else {
-            console.error('Subscription failed:', status);
-          }
-        });
-        __currentLeaderboardSubscription = channel;
-      } catch (err) {
-        console.warn('renderLeaderboard: realtime subscription failed', err);
+        container.innerHTML = '';
+        container.appendChild(wrapper);
+      } catch (e) {
+        console.error('renderLeaderboard: failed to update DOM', e);
       }
 
       return;
     }
 
     async function renderEditRound(compSlug, eventId, roundId) {
+      document.getElementById('club-name').textContent = unslug(compSlug);
+
       const container = document.getElementById('edit-round');
       if (!container) {
         console.warn('renderEditRound: #edit-round element not found');
@@ -1969,6 +1960,8 @@
     }
 
     async function renderCompetitorList(compSlug) {
+      document.getElementById('club-name').textContent = unslug(compSlug);
+
       const container = document.getElementById('competitor-list');
       if (!container) {
         console.warn('renderCompetitorList: #competitor-list not found');
@@ -2174,6 +2167,8 @@
     }
 
     async function renderCompetitorResults(compSlug, competitorName) {
+      document.getElementById('club-name').textContent = unslug(compSlug);
+
       const container = document.getElementById('competitor-results');
       if (!container) {
         console.warn('renderCompetitorResults: #competitor-results element not found');
@@ -2571,6 +2566,8 @@
     }
 
     async function renderPodiums(compSlug) {
+      document.getElementById('club-name').textContent = unslug(compSlug);
+
       const container = document.getElementById('podiums');
       if (!container) {
         console.warn('renderPodiums: #podiums element not found');
@@ -3283,7 +3280,6 @@
 
       if (isMobileView()) {
         document.getElementById('club-logo').style.display = 'none';
-        document.getElementById('ig-icon').style.display = 'none';
         document.getElementById('btn-login-top').style.display = 'none';
         document.getElementById('btn-signout-top').style.display = 'none';
       }
@@ -3349,11 +3345,14 @@
       }
 
       if (id === 'edit') {
-        // params: compSlug, eventId, roundId
-        // renderEditRound will populate #edit-round
-        renderEditRound(params.compSlug, params.eventId, params.roundId).catch(err => {
-          console.error('renderEditRound error', err);
-        });
+        if (isLoggedIn) {
+          renderEditRound(params.compSlug, params.eventId, params.roundId).catch(err => {
+            console.error('renderEditRound error', err);
+          });
+        } else {
+          window.alert('Please sign in to input live results.')
+          navigate(location.pathname.slice(0,-5))
+        }
         return;
       }
 
@@ -3362,9 +3361,6 @@
         fetchCompetitions().catch(()=>{});
       }
     }
-
-
-
 
     // handle back/forward
     window.addEventListener('popstate', () => {
@@ -3389,6 +3385,74 @@
       const s = slug(compName);
       navigate('/' + encodeURIComponent(s));
     });
+
+
+    (function setupLeaderboardPollingFallback() {
+      let __leaderboardPollingRunning = false;
+
+      async function pollOnce() {
+        try {
+          const route = (typeof getRoute === 'function') ? getRoute(location.pathname || '/') : null;
+          if (!route || route.view !== 'leaderboard') return;
+
+          if (__leaderboardPollingRunning) return;
+          __leaderboardPollingRunning = true;
+
+          const compSlug = route.compSlug;
+          const eventId = route.eventId;
+          const roundId = route.roundId;
+
+          // Silent update: do not show loading or clear existing DOM; do not re-subscribe
+          await renderLeaderboard({ compSlug, eventId, roundId, silent: true }).catch((err) => {
+            console.warn('leaderboard silent poll error', err);
+          });
+
+        } catch (e) {
+          console.warn('leaderboard poll failed', e);
+        } finally {
+          __leaderboardPollingRunning = false;
+        }
+      }
+
+      function startLeaderboardPollingFallback() {
+        if (typeof __leaderboardPollInterval !== 'undefined' && __leaderboardPollInterval) return;
+        // immediate silent poll then every 15s
+        pollOnce();
+        __leaderboardPollInterval = setInterval(pollOnce, 15000);
+      }
+
+      function stopLeaderboardPollingFallback() {
+        try {
+          if (typeof __leaderboardPollInterval !== 'undefined' && __leaderboardPollInterval) {
+            clearInterval(__leaderboardPollInterval);
+            __leaderboardPollInterval = null;
+          }
+        } catch (e) { /* ignore */ }
+      }
+
+      if (document.readyState === 'loading') {
+        window.addEventListener('DOMContentLoaded', startLeaderboardPollingFallback);
+      } else {
+        startLeaderboardPollingFallback();
+      }
+
+      window.addEventListener('popstate', () => {
+        try {
+          const route = (typeof getRoute === 'function') ? getRoute(location.pathname || '/') : null;
+          if (route && route.view === 'leaderboard') {
+            pollOnce();
+          }
+        } catch (e) { /* ignore */ }
+      });
+
+      window.addEventListener('beforeunload', () => {
+        stopLeaderboardPollingFallback();
+      });
+
+      // expose controls for debugging
+      window.startLeaderboardPollingFallback = startLeaderboardPollingFallback;
+      window.stopLeaderboardPollingFallback = stopLeaderboardPollingFallback;
+    })();
 
     navigate(location.pathname);
 

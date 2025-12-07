@@ -328,8 +328,8 @@
     Object.entries(ROUND_CODE_TO_NAME).map(([code, name]) => [name.toString().trim().toLowerCase(), code])
     );
 
-    const SUPABASE_URL = 'https://bkzosvxbkhzkskaejqcb.supabase.co';
-    const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJrem9zdnhia2h6a3NrYWVqcWNiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjQzOTczMzIsImV4cCI6MjA3OTk3MzMzMn0.iqZZCfEtSdWksHGfbxUAOoaInu6ZpR-7mEIRtmvW9io';
+    const SUPABASE_URL = process.env.SUPABASE_URL;
+    const SUPABASE_ANON_KEY = process.env.SUPABASE_ANON_KEY;
 
     const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 

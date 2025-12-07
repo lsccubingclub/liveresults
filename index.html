@@ -913,8 +913,14 @@
       const isPhone = /iphone|android.*mobile/.test(ua);
       const isTablet = /ipad|android(?!.*mobile)/.test(ua);
       const isPortrait = window.matchMedia("(orientation: portrait)").matches;
+      return (((isPhone || isTablet) && isPortrait) || (window.innerWidth <= 640));
+    }
 
-      return ((isPhone || isTablet) && isPortrait || (window.innerWidth <= 640));
+    if (isMobileView()) {
+      document.getElementById('club-name').style.fontSize = '8vw';
+      document.getElementById('club-name').style.whiteSpace = 'nowrap';
+      document.getElementById('club-name').style.overflow = 'hidden';
+      document.getElementById('club-name').style.textOverflow = 'ellipsis';
     }
 
 
@@ -1530,7 +1536,7 @@
           // click opens modal with details (modal contains the "All results" link)
           tr.addEventListener('click', () => {
             const compPathSlug = slug(compRowName || compSlug || '');
-            const nameLine = `${r.name || ''} #${rankVal === null ? '' : rankVal}`;
+            const nameLine = `${r.name || ''} ${rankVal === null ? '' : '#'+rankVal}`;
             const nameRow = `<div style="font-size:18px;font-weight:700;margin-bottom:8px">${escapeHtml(nameLine)}</div>`;
             const metaRow = `<div style="font-size:14px;font-weight:600;margin-bottom:8px">Name<br><div style="font-weight:normal;">${escapeHtml(r.name || '')} ${escapeHtml(r.class || '')}${r.number ? `(${escapeHtml(String(r.number))})` : ''}</div></div>`;
             const linkRow = `<div style="margin-bottom:8px"><a href="#" data-nav="/${encodeURIComponent(compPathSlug)}/competitors/${encodeURIComponent(slug(String(r.name||'')))}" style="color:#1976d2;text-decoration:underline">All results</a></div>`;

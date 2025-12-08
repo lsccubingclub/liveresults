@@ -28,9 +28,11 @@
       margin: 0;
       padding: 0;
     }
-    body { font-family: 'Roboto', sans-serif; background: white; padding: 0; box-sizing: border-box; }
-
-    body {
+    body { 
+      font-family: 'Roboto', sans-serif; 
+      background: white; 
+      padding: 0; 
+      box-sizing: border-box; 
       font-size: 1rem; /* base size */
     }
 
@@ -59,14 +61,6 @@
       transition: height 0.3s ease;
     }
 
-    #main-header .logo-badge > #logo {
-      height: 55px;
-    }
-
-    #main-header .logo-badge::before {
-      inset: -6px;
-    }
-
     #btn-login-top{
       height: 35px;
       cursor: pointer;
@@ -92,34 +86,15 @@
       right: 0;
       width: 100%;
       background: #1976D2;
-      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-      transition: all 0.3s ease;
       box-sizing: border-box;
-      padding: 20px 40px;
+      padding: 0px 30px;
       margin: 0;
       z-index: 1000;
     }
-    
-    #main-header {
-      padding: 0px 30px;
-      font-size: 0.6em;
-    }
 
     #main-header #club-name {
-      font-size: 36px;
-      transition: all 0.3s ease;
-    }
-
-    #main-header #club-name {
-      font-size: 34px;
+      font-size: 28px;
       color: white;
-    }
-
-    #view-home #club-name {
-      margin: 0 auto;
-      font-size: 30px;
-      text-align: center;
-      white-space: nowrap;
     }
 
     #sidebar-overlay {
@@ -915,14 +890,6 @@
       const isPortrait = window.matchMedia("(orientation: portrait)").matches;
       return (((isPhone || isTablet) && isPortrait) || (window.innerWidth <= 640));
     }
-
-    if (isMobileView()) {
-      document.getElementById('club-name').style.fontSize = '1vw';
-      document.getElementById('club-name').style.whiteSpace = 'nowrap';
-      document.getElementById('club-name').style.overflow = 'hidden';
-      document.getElementById('club-name').style.textOverflow = 'ellipsis';
-    }
-
 
     // Debounce helper
     function debounce(fn, wait = 200) {
@@ -3461,6 +3428,9 @@
       window.stopLeaderboardPollingFallback = stopLeaderboardPollingFallback;
     })();
 
+    if(isMobileView()) {
+      document.getElementById('club-name').style.fontSize = '2vw';
+    }
     navigate(location.pathname);
 
   </script>

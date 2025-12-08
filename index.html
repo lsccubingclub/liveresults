@@ -847,9 +847,10 @@
         if (loginBtn) loginBtn.style.display = (isMobileView()) ? 'none' : '';
         if (signoutBtn) signoutBtn.style.display = 'none';
       }
+
       const inputLiveResultsBtn = document.getElementById('btn-input-live-results');
       if (inputLiveResultsBtn) {
-        inputLiveResultsBtn.style.display = isLoggedIn ? '' : 'none';
+        inputLiveResultsBtn.style.display = (isLoggedIn && !isMobileView()) ? '' : 'none';
       }
     }
 
@@ -995,6 +996,7 @@
         } else if (route.view === 'competitor-results') {
           renderCompetitorResults(route.compSlug, route.competitorName).catch(()=>{});
         }
+        updateMobileUI();
       } catch (e) { /* ignore */ }
     }, 300);
 
@@ -3248,15 +3250,16 @@
       showView('competition-main-page', { compSlug });
     }
 
+    function updateMobileUI() {
+      document.getElementById('club-name').style.fontSize = isMobileView() ? '4vw' : '28px';
+      document.getElementById('club-logo').style.display = isMobileView() ? 'none' : '';
+      document.getElementById('btn-login-top').style.display = (isMobileView()) ? 'none' : isLoggedIn ? 'none' : '';
+      document.getElementById('btn-signout-top').style.display = (isMobileView()) ? 'none' : isLoggedIn ? '' : 'none';
+    }
 
     // Updated showView to include login and edit views
     function showView(id, params = {}) {
-
-      if (isMobileView()) {
-        document.getElementById('club-logo').style.display = 'none';
-        document.getElementById('btn-login-top').style.display = 'none';
-        document.getElementById('btn-signout-top').style.display = 'none';
-      }
+      updateMobileUI();
       
       const views = {
         'main': document.getElementById('main'),
@@ -3428,9 +3431,6 @@
       window.stopLeaderboardPollingFallback = stopLeaderboardPollingFallback;
     })();
 
-    if(isMobileView()) {
-      document.getElementById('club-name').style.fontSize = '1px';
-    }
     navigate(location.pathname);
 
   </script>

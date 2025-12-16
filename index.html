@@ -33,12 +33,12 @@
       background: white; 
       padding: 0; 
       box-sizing: border-box; 
-      font-size: 1rem; /* base size */
+      font-size: 1rem;
     }
 
     @media (max-width: 640px) {
       body {
-        font-size: 1.2rem; /* bump up text on small screens */
+        font-size: 1.2rem;
       }
       .container {
         padding: 1rem;
@@ -169,7 +169,6 @@
     }
     .sidebar-event .round-item:hover { background:#fff; border-color:#eee; box-shadow:0 4px 10px rgba(0,0,0,0.04); }
 
-    /* Menu button in header (left) */
     @media (max-width: 720px) {
       #live-sidebar { width: 84vw; }
     }
@@ -184,7 +183,6 @@
 
   <header id="main-header">
     <div id="header-left" style="display:flex; align-items:center; gap:12px;">
-      <!-- menu image button (leftmost) -->
       <button id="btn-open-sidebar" aria-label="Open menu" class="menu-btn" style="background:none;border:0;padding:0;font-size:x-large;color:white;cursor:pointer; display:none;" >
         <img id="menu-icon" src="/images/menu_icon.png" alt="menu" style="height:36px;width:36px;display:block;">
       </button>
@@ -244,7 +242,6 @@
     <div style="max-width:1100px;margin:16px auto;padding:12px;background:#fff;border-radius:8px;box-shadow:0 6px 18px rgba(18,38,63,0.04);">
       <div style="display:flex;gap:8px;align-items:center;margin-bottom:12px;">
         <input id="competitors-search" placeholder="Search competitors" style="flex:1;padding:8px 10px;border:1px solid #ddd;border-radius:6px;font-size:0.95rem;">
-        <button id="competitors-refresh" style="padding:8px 12px;border-radius:6px;border:1px solid #ddd;background:#fff;cursor:pointer;">Refresh</button>
       </div>
 
       <div id="competitors-wrap" aria-live="polite" style="min-height:80px;">
@@ -349,10 +346,6 @@
       return competitionsCache;
     }
 
-    /**
-     * Render competitions list into the page.
-     * Clicking an item navigates to /COMPETITION_NAME (URL-encoded slug).
-     */
     function renderCompetitions(list) {
       document.getElementById('club-name').textContent = 'LSC Cubing Club Live';
 
@@ -384,7 +377,6 @@
         div.appendChild(name);
         div.appendChild(meta);
 
-        // keyboard accessibility
         div.addEventListener('keydown', (ev) => {
           if (ev.key === 'Enter' || ev.key === ' ') {
             ev.preventDefault();
@@ -395,18 +387,14 @@
         frag.appendChild(div);
       });
 
-      // remove trailing border on last item
       const container = document.createElement('div');
       container.appendChild(frag);
-      // replace list
       listEl.innerHTML = '';
-      // append children from frag
       while (container.firstChild) {
         listEl.appendChild(container.firstChild);
       }
     }
 
-    /** Filter competitions by query (searches name and venue and year) */
     function filterCompetitions(q) {
       const ql = String(q || '').trim().toLowerCase();
       if (!ql) return competitionsCache;
@@ -418,21 +406,18 @@
       });
     }
 
-    // Wire up search input
     searchEl.addEventListener('input', (e) => {
       const filtered = filterCompetitions(e.target.value);
       renderCompetitions(filtered);
     });
-
 
     async function renderCompetitionMainPage(compSlug) {
       document.getElementById('club-name').textContent = unslug(compSlug);
 
       const container = document.getElementById('competition-main-page');
 
-      // Clear container and show loading state
       container.innerHTML = '';
-      container.style.display = ''; // ensure visible
+      container.style.display = '';
       const loadingCard = document.createElement('div');
       loadingCard.style.maxWidth = '1100px';
       loadingCard.style.margin = '16px auto';
@@ -443,7 +428,6 @@
       loadingCard.innerHTML = `<div style="color:#666">Loading competition...</div>`;
       container.appendChild(loadingCard);
 
-      // Normalize incoming slug (it should already be decoded by router)
       const incoming = String(compSlug || '').trim();
       if (!incoming) {
         loadingCard.innerHTML = `<div style="color:#900">Invalid competition slug</div>`;
@@ -488,7 +472,6 @@
             }
           }
 
-          // Looser fallback: match by words
           if (!compRow) {
             const words = searchName.split(/\s+/).filter(Boolean).map(w => w.toLowerCase());
             for (const c of (allComps || [])) {
@@ -511,7 +494,6 @@
         return;
       }
 
-      // Fetch rounds for this competition
       let rounds = [];
       try {
         const { data: roundsData, error: roundsErr } = await supabase
@@ -537,10 +519,8 @@
         return;
       }
 
-      // Build UI
-      container.innerHTML = ''; // clear loading
+      container.innerHTML = '';
 
-      // Subtitle
       const subtitleWrap = document.createElement('div');
       subtitleWrap.style.maxWidth = '1100px';
       subtitleWrap.style.margin = '16px auto';
@@ -556,7 +536,6 @@
 
       container.appendChild(subtitleWrap);
 
-      // Grid wrapper (centered)
       const gridWrap = document.createElement('div');
       gridWrap.style.maxWidth = '1100px';
       gridWrap.style.margin = '0 auto 32px auto';
@@ -577,7 +556,6 @@
         return rounds;
       }
 
-      // Create a card for each round
       rounds.forEach(r => {
         const evCode = (r.event_id || '').toString();
         const evName = EVENT_CODE_TO_NAME[evCode] || (evCode ? evCode : 'Event');
@@ -599,7 +577,6 @@
         card.style.textAlign = 'left';
         card.style.boxSizing = 'border-box';
 
-        // Icon container (left)
         const iconWrap = document.createElement('div');
         iconWrap.style.width = '48px';
         iconWrap.style.height = '48px';
@@ -611,8 +588,6 @@
         iconWrap.style.background = '#f6f8fb';
 
         const img = document.createElement('img');
-        // Use /images/EVENTID (user requested). Try common extensions gracefully.
-        // Prefer PNG, fallback to no-ext path.
         img.src = `/images/event_icons/${evCode}.png`;
         img.alt = evName;
         img.style.width = '36px';
@@ -623,7 +598,6 @@
         iconWrap.appendChild(img);
         card.appendChild(iconWrap);
 
-        // Text block
         const textWrap = document.createElement('div');
         textWrap.style.display = 'flex';
         textWrap.style.flexDirection = 'column';
@@ -646,7 +620,6 @@
           navigate(path);
         });
 
-        // keyboard accessibility
         card.addEventListener('keydown', (ev) => {
           if (ev.key === 'Enter' || ev.key === ' ') {
             ev.preventDefault();
@@ -660,8 +633,6 @@
       return rounds;
     }
 
-
-
     function showLoginView() {
       const container = document.getElementById('login');
       if (!container) {
@@ -669,8 +640,8 @@
         return;
       }
 
-      container.innerHTML = ''; // clear
-      container.style.display = ''; // show
+      container.innerHTML = '';
+      container.style.display = '';
 
       const overlay = document.createElement('div');
       overlay.style.position = 'fixed';
@@ -783,7 +754,6 @@
       overlay.appendChild(panel);
       container.appendChild(overlay);
 
-      // focus email
       setTimeout(() => {
         const e = document.getElementById('login-email');
         if (e) e.focus();
@@ -808,14 +778,12 @@
         return;
       }
       try {
-        // use auth (const auth = firebase.auth()) that you already created
         await auth.signInWithEmailAndPassword(email, password);
-        // success: close view, update UI
         closeLoginView();
         isLoggedIn = true;
         updateAuthStateUI();
         window.alert(`Signed in successfully as ${email}`);
-        navigate(savedPath || '/');
+        navigate(savedPath);
       } catch (err) {
         console.error('login error', err);
         if (errEl) errEl.textContent = 'Invalid email or password.';
@@ -883,7 +851,6 @@
     initLoginButtons();
 
 
-    // Enhanced mobile + orientation detection
     function isMobileView() {
       const ua = navigator.userAgent.toLowerCase();
       const isPhone = /iphone|android.*mobile/.test(ua);
@@ -892,7 +859,6 @@
       return (((isPhone || isTablet) && isPortrait) || (window.innerWidth <= 640));
     }
 
-    // Debounce helper
     function debounce(fn, wait = 200) {
       let t;
       return (...args) => {
@@ -901,8 +867,6 @@
       };
     }
 
-    // Modal overlay for mobile detail box
-    // Modal overlay for mobile detail box (robust event wiring)
     (function setupMobileModal() {
       if (document.getElementById('mobile-detail-overlay')) return;
 
@@ -923,7 +887,7 @@
       box.style.maxWidth = '520px';
       box.style.width = '100%';
       box.style.background = '#fff';
-      box.style.borderRadius = '10px';
+      box.style.borderRadius = '3px';
       box.style.padding = '16px';
       box.style.boxSizing = 'border-box';
       box.style.boxShadow = '0 10px 30px rgba(0,0,0,0.2)';
@@ -931,44 +895,35 @@
       box.style.maxHeight = '90vh';
       overlay.appendChild(box);
 
-      // close when clicking outside box
       overlay.addEventListener('click', (e) => {
         if (e.target === overlay) closeMobileDetail();
       });
 
       document.body.appendChild(overlay);
 
-      // helper to attach data-nav handlers inside the modal
       function attachNavHandlers() {
-        // find anchors with data-nav inside the box
         const anchors = box.querySelectorAll('a[data-nav]');
         anchors.forEach(a => {
-          // remove any previous listener marker to avoid duplicates
           if (a.__mobileNavAttached) return;
           a.__mobileNavAttached = true;
           a.addEventListener('click', (ev) => {
             ev.preventDefault();
             const path = a.getAttribute('data-nav');
             try {
-              // close modal first so navigation view isn't blocked by overlay
               closeMobileDetail();
-            } catch (e) { /* ignore */ }
+            } catch (e) {}
             try {
-              // call your navigate function (must exist in scope)
               if (typeof navigate === 'function') navigate(path);
-              else window.location.href = path; // fallback
+              else window.location.href = path;
             } catch (err) {
-              // fallback to location change if navigate isn't available
               try { window.location.href = path; } catch (e) {}
             }
           });
         });
       }
 
-      // expose show/close functions
       window.showMobileDetail = function (htmlContent) {
         box.innerHTML = htmlContent || '';
-        // attach handlers after content inserted
         attachNavHandlers();
         overlay.style.display = 'flex';
         document.body.style.overflow = 'hidden';
@@ -977,18 +932,14 @@
       window.closeMobileDetail = function () {
         overlay.style.display = 'none';
         document.body.style.overflow = '';
-        // clear content to avoid stale handlers
         box.innerHTML = '';
       };
     })();
 
-
-    // Re-render current view when switching between mobile/desktop
     const __mobileResizeHandler = debounce(() => {
       try {
         const route = getRoute(location.pathname || '/');
         if (!route) return;
-        // Only re-render these views
         if (route.view === 'leaderboard') {
           renderLeaderboard({ compSlug: route.compSlug, eventId: route.eventId, roundId: route.roundId }).catch(()=>{});
         } else if (route.view === 'podiums') {
@@ -997,7 +948,7 @@
           renderCompetitorResults(route.compSlug, route.competitorName).catch(()=>{});
         }
         updateMobileUI();
-      } catch (e) { /* ignore */ }
+      } catch (e) {}
     }, 300);
 
     window.addEventListener('resize', __mobileResizeHandler);
@@ -1021,7 +972,7 @@
       }
     }
 
-    function parseTimeToCentiseconds(input) {
+    function inputToCS(input) {
       if (input === null || input === undefined) return null;
       const s = String(input).trim();
       if (s === '') return null;
@@ -1029,7 +980,6 @@
       if (up === 'DNF') return -1;
       if (up === 'DNS') return -2;
 
-      // mm:ss.xx or m:ss.xx
       const colonMatch = s.match(/^(\d+):(\d+(?:\.\d+)?)$/);
       if (colonMatch) {
         const mins = Number(colonMatch[1]);
@@ -1038,7 +988,6 @@
         return Math.round((mins * 60 + secs) * 100);
       }
 
-      // plain seconds with optional decimal
       const n = Number(s);
       if (!Number.isFinite(n)) return null;
       return Math.round(n * 100);
@@ -1091,10 +1040,9 @@
     async function renderLeaderboard(params = {}) {
       const { compSlug, eventId, roundId, silent = false } = params || {};
 
-      // Update header immediately (safe to do even in silent mode)
       try {
         document.getElementById('club-name').textContent = unslug(compSlug);
-      } catch (e) { /* ignore */ }
+      } catch (e) {}
 
       const container = document.getElementById('leaderboard');
       if (!container) {
@@ -1104,7 +1052,6 @@
 
       const mobile = isMobileView();
 
-      // Only clear and show loading when NOT silent
       let loading;
       if (!silent) {
         container.innerHTML = '';
@@ -1119,7 +1066,6 @@
         container.appendChild(loading);
       }
 
-      // Resolve round metadata
       let roundRow = null;
       let compRowName = null;
       try {
@@ -1159,7 +1105,7 @@
           try {
             const { data: compData } = await supabase.from('competitions').select('name').eq('id', roundRow.comp_id).limit(1);
             if (compData && compData[0]) compRowName = compData[0].name;
-          } catch (e) { /* ignore */ }
+          } catch (e) {}
         }
       } catch (err) {
         console.error('renderLeaderboard: error resolving round', err);
@@ -1167,14 +1113,12 @@
         return;
       }
 
-      // Determine format and attemptCount
       const format = (roundRow.format || '').toLowerCase();
       let attemptCount = 5;
       if (format === 'mo3' || format === 'bo3') attemptCount = 3;
       else if (format === 'bo2') attemptCount = 2;
       else if (format === 'bo1') attemptCount = 1;
 
-      // Fetch round_results
       let rows = [];
       try {
         const { data, error } = await supabase
@@ -1204,7 +1148,6 @@
         return;
       }
 
-      // Prepare computed fields
       const prepared = rows.map(r => {
         const attempts = r.attempts.slice(0, attemptCount);
         const bestRaw = computeBest(attempts);
@@ -1229,7 +1172,6 @@
         };
       });
 
-      // Ranking helpers
       function primaryValueForRow(row) {
         if (format === 'ao5') {
           const v = row.averageRaw; if (v === null || v === undefined) return Infinity; if (v === -1) return Infinity; return Number(v);
@@ -1255,7 +1197,6 @@
         return String(a.name || '').localeCompare(String(b.name || ''));
       });
 
-      // Assign ranks
       const ranks = new Array(prepared.length).fill(null);
       let lastPrimary = null, lastSecondary = null, lastRank = 0;
       for (let i = 0; i < prepared.length; i++) {
@@ -1269,7 +1210,6 @@
         }
       }
 
-      // Advance threshold and unfinished count
       function getAdvanceThreshold(roundRow) {
         try { const rc = String(roundRow.round_code || '').toLowerCase(); if (rc === 'f') return 3; } catch (e) {}
         return 8;
@@ -1277,7 +1217,6 @@
       const advanceThreshold = getAdvanceThreshold(roundRow);
       const unfinishedCount = prepared.reduce((acc, row) => acc + (row.hasMissingAttempt ? 1 : 0), 0);
 
-      // Build UI into a detached wrapper (do not touch DOM until fully ready)
       const wrapper = document.createElement('div');
       wrapper.style.maxWidth = '1100px';
       wrapper.style.margin = '16px auto';
@@ -1336,7 +1275,6 @@
           tr.style.borderBottom = '1px solid #f0f0f0';
           tr.style.background = (idx % 2 === 0) ? '#fff' : '#fbfcfe';
 
-          // Rank cell with highlight logic (bright colors, black text, not bold)
           const rankTd = document.createElement('td');
           rankTd.style.padding = '8px';
           const rankVal = (ranks[idx] === null || ranks[idx] === undefined) ? null : Number(ranks[idx]);
@@ -1359,7 +1297,6 @@
           }
           tr.appendChild(rankTd);
 
-          // Name (link)
           const nameTd = document.createElement('td');
           nameTd.style.padding = '8px';
           const nameLink = document.createElement('a');
@@ -1414,7 +1351,6 @@
         table.appendChild(tbody);
         wrapper.appendChild(table);
       } else {
-        // Mobile view: show columns like renderPodiums: #, Name, Best, Average/Mean (omit attempts)
         const table = document.createElement('table');
         table.style.width = '100%';
         table.style.borderCollapse = 'collapse';
@@ -1452,7 +1388,6 @@
           tr.style.background = (idx % 2 === 0) ? '#fff' : '#fbfcfe';
           tr.style.cursor = 'pointer';
 
-          // Rank cell (same highlight logic)
           const rankTd = document.createElement('td');
           rankTd.style.padding = '8px';
           const rankVal = (ranks[idx] === null || ranks[idx] === undefined) ? null : Number(ranks[idx]);
@@ -1470,13 +1405,11 @@
           }
           tr.appendChild(rankTd);
 
-          // Name (plain text on mobile)
           const nameTd = document.createElement('td');
           nameTd.style.padding = '8px';
           nameTd.textContent = r.name || '';
           tr.appendChild(nameTd);
 
-          // Best
           const bestTd = document.createElement('td');
           bestTd.style.padding = '8px';
           if (r.bestRaw === null || r.bestRaw === undefined) bestTd.textContent = '';
@@ -1484,7 +1417,6 @@
           else bestTd.textContent = csToDisplay(r.bestRaw);
           tr.appendChild(bestTd);
 
-          // Average / Mean (if applicable)
           if (format === 'ao5') {
             const avgTd = document.createElement('td');
             avgTd.style.padding = '8px';
@@ -1502,13 +1434,12 @@
             tr.appendChild(meanTd);
           }
 
-          // click opens modal with details (modal contains the "All results" link)
           tr.addEventListener('click', () => {
             const compPathSlug = slug(compRowName || compSlug || '');
             const nameLine = `${r.name || ''} ${rankVal === null ? '' : '#'+rankVal}`;
             const nameRow = `<div style="font-size:18px;font-weight:700;margin-bottom:8px">${escapeHtml(nameLine)}</div>`;
-            const metaRow = `<div style="font-size:14px;font-weight:600;margin-bottom:8px">Name<br><div style="font-weight:normal;">${escapeHtml(r.name || '')} ${escapeHtml(r.class || '')}${r.number ? `(${escapeHtml(String(r.number))})` : ''}</div></div>`;
-            const linkRow = `<div style="margin-bottom:8px"><a href="#" data-nav="/${encodeURIComponent(compPathSlug)}/competitors/${encodeURIComponent(slug(String(r.name||'')))}" style="color:#1976d2;text-decoration:underline">All results</a></div>`;
+            const metaRow = `<div style="font-size:14px;font-weight:600;margin-bottom:8px">Name<br><div style="font-weight:normal;">${escapeHtml(r.name || '')} (${escapeHtml(r.class || '')}${r.number ? `${escapeHtml(String(r.number))}` : ''})</div></div>`;
+            const linkRow = `<div style="margin-bottom:8px"><a href="#" data-nav="/${encodeURIComponent(compPathSlug)}/competitors/${encodeURIComponent(slug(String(r.name||'')))}" style="font-size:15px;color:#1976d2;text-decoration:underline">All results</a></div>`;
             const attemptsText = (r.attempts && r.attempts.length) ? r.attempts.map(a => (a === null || a === undefined || a === '') ? '' : csToDisplay(a)).filter(x=>x!=='').join(', ') : '';
             const attemptsRow = `<div style="font-size:14px;font-weight:600;margin-bottom:8px">Attempts<br><div style="font-weight:normal;">${escapeHtml(attemptsText || '')}</div></div>`;
             const avgText = (format === 'ao5') ? (r.averageRaw === null || r.averageRaw === undefined ? '' : (r.averageRaw === -1 ? 'DNF' : csToDisplay(r.averageRaw))) : ((format === 'mo3' || format === 'bo3') ? (r.meanRaw === null || r.meanRaw === undefined ? '' : (r.meanRaw === -1 ? 'DNF' : csToDisplay(r.meanRaw))) : '');
@@ -1530,8 +1461,6 @@
 
       try { attachInputLiveButtonIfAuthorized(compRowName || compSlug || '', roundRow, { wrapper }); } catch (e) { console.warn('attachInputLiveButtonIfAuthorized failed', e); }
       
-
-      // Replace DOM only after everything is ready (this makes silent updates appear atomic)
       try {
         container.innerHTML = '';
         container.appendChild(wrapper);
@@ -1552,9 +1481,8 @@
       }
 
       container.innerHTML = '';
-      container.style.display = ''; // show
+      container.style.display = '';
 
-      // Loading UI
       const loading = document.createElement('div');
       loading.style.maxWidth = '1100px';
       loading.style.margin = '16px auto';
@@ -1565,7 +1493,6 @@
       loading.innerHTML = `<div style="color:#666">Loading...</div>`;
       container.appendChild(loading);
 
-      // Resolve competition row (same approach used elsewhere)
       const searchName = String(compSlug || '').replace(/_/g, ' ').trim();
       let compRow = null;
       try {
@@ -1575,17 +1502,16 @@
           .ilike('name', `%${searchName}%`)
           .limit(1);
         if (!compErr && compData && compData.length) compRow = compData[0];
-      } catch (e) { /* ignore */ }
+      } catch (e) {}
 
       if (!compRow) {
-        // fallback: fetch all and match slug
         try {
           const { data: allComps } = await supabase.from('competitions').select('id,name');
           const target = String(searchName).replace(/\s+/g, '_');
           for (const c of (allComps || [])) {
             if (String(c.name).replace(/\s+/g, '_') === target) { compRow = c; break; }
           }
-        } catch (e) { /* ignore */ }
+        } catch (e) {}
       }
 
       if (!compRow) {
@@ -1593,7 +1519,6 @@
         return;
       }
 
-      // Resolve round metadata
       let roundRow = null;
       try {
         const { data, error } = await supabase
@@ -1613,21 +1538,19 @@
         return;
       }
 
-      // Determine format and attemptCount
       const fmt = (roundRow.format || '').toLowerCase();
       let attemptCount = 5;
       if (fmt === 'mo3' || fmt === 'bo3') attemptCount = 3;
       else if (fmt === 'bo2') attemptCount = 2;
       else if (fmt === 'bo1') attemptCount = 1;
 
-      // Fetch all round_results for this round
       let allRows = [];
       try {
         const { data: allData, error: allErr } = await supabase
           .from('round_results')
           .select('id, competitor_name, competitor_id, class, number, attempt1, attempt2, attempt3, attempt4, attempt5')
           .eq('round_id', roundRow.id)
-          .order('competitor_id', { ascending: true }); // order by competitor_id as requested
+          .order('competitor_id', { ascending: true });
 
         if (allErr) throw allErr;
         allRows = allData || [];
@@ -1637,8 +1560,7 @@
         return;
       }
 
-      // Build edit UI
-      container.innerHTML = ''; // clear loading
+      container.innerHTML = '';
 
       const wrapper = document.createElement('div');
       wrapper.style.maxWidth = '1100px';
@@ -1649,7 +1571,6 @@
       wrapper.style.boxShadow = '0 6px 18px rgba(18,38,63,0.04)';
       wrapper.style.overflowX = 'auto';
 
-      // Title + controls
       const titleRow = document.createElement('div');
       titleRow.style.display = 'flex';
       titleRow.style.justifyContent = 'space-between';
@@ -1673,7 +1594,6 @@
       cancelBtn.style.border = '1px solid #ddd';
       cancelBtn.style.background = '#fff';
       cancelBtn.addEventListener('click', () => {
-        // go back to leaderboard view
         navigate(`/${encodeURIComponent(slug(compRow.name))}/${encodeURIComponent(String(roundRow.event_id))}/${encodeURIComponent(String(roundRow.id))}`);
       });
       controls.appendChild(cancelBtn);
@@ -1691,17 +1611,14 @@
       titleRow.appendChild(controls);
       wrapper.appendChild(titleRow);
 
-      // Table: no # column, competitors ordered by competitor_id
       const table = document.createElement('table');
       table.style.width = '100%';
       table.style.borderCollapse = 'collapse';
       table.style.fontSize = '0.95rem';
 
-      // Header
       const thead = document.createElement('thead');
       const headerRow = document.createElement('tr');
 
-      // Name, Class, Number
       ['Name', 'Class', 'Number'].forEach(h => {
         const th = document.createElement('th');
         th.style.padding = '8px';
@@ -1713,7 +1630,6 @@
         headerRow.appendChild(th);
       });
 
-      // attempt input columns
       for (let i = 1; i <= attemptCount; i++) {
         const th = document.createElement('th');
         th.style.padding = '8px';
@@ -1730,16 +1646,12 @@
 
       const tbody = document.createElement('tbody');
 
-      // Build rows with inputs
-      // We'll keep a small data structure to reference inputs for saving
-      const editRows = []; // { id, competitor_id, inputs: [inputEl,...], name, class, number }
+      const editRows = [];
 
-      // Ensure ordering by competitor_id numeric if possible, else by name
       allRows.sort((a,b) => {
         const ai = a.competitor_id ?? '';
         const bi = b.competitor_id ?? '';
         if (ai !== '' && bi !== '') {
-          // try numeric compare
           const an = Number(ai), bn = Number(bi);
           if (Number.isFinite(an) && Number.isFinite(bn)) return an - bn;
           return String(ai).localeCompare(String(bi));
@@ -1752,25 +1664,21 @@
         tr.style.borderBottom = '1px solid #f0f0f0';
         tr.style.background = (idx % 2 === 0) ? '#fff' : '#fbfcfe';
 
-        // Name
         const nameTd = document.createElement('td');
         nameTd.style.padding = '8px';
         nameTd.textContent = r.competitor_name || '';
         tr.appendChild(nameTd);
 
-        // Class
         const classTd = document.createElement('td');
         classTd.style.padding = '8px';
         classTd.textContent = r.class || '';
         tr.appendChild(classTd);
 
-        // Number
         const numTd = document.createElement('td');
         numTd.style.padding = '8px';
         numTd.textContent = r.number || '';
         tr.appendChild(numTd);
 
-        // Attempt inputs
         const inputs = [];
         for (let i = 0; i < attemptCount; i++) {
           const td = document.createElement('td');
@@ -1781,13 +1689,10 @@
           input.style.padding = '6px';
           input.style.border = '1px solid #ddd';
           input.style.borderRadius = '6px';
-          // prefill with existing value if present
           const raw = r[`attempt${i+1}`];
           input.value = (raw === null || raw === undefined || raw === '') ? '' : csToDisplay(raw);
-          // update computed cells on input
           input.addEventListener('input', () => {
-            // recompute best/avg/mean for this row live
-            const vals = inputs.map(inp => parseTimeToCentiseconds(inp.value));
+            const vals = inputs.map(inp => inputToCS(inp.value));
             const best = computeBest(vals);
             bestCell.textContent = (best === null || best === undefined) ? '' : csToDisplay(best);
             if (fmt === 'ao5') {
@@ -1811,14 +1716,13 @@
           competitor_name: r.competitor_name || '',
           class: r.class || '',
           number: r.number || '',
-          inputs // array of input elements
+          inputs
         });
       });
 
       table.appendChild(tbody);
       wrapper.appendChild(table);
 
-      // status message
       const status = document.createElement('div');
       status.style.marginTop = '12px';
       status.style.color = '#666';
@@ -1826,17 +1730,14 @@
 
       container.appendChild(wrapper);
 
-      // Save handler
       saveBtn.addEventListener('click', async () => {
         saveBtn.disabled = true;
         saveBtn.textContent = 'Saving...';
         status.textContent = '';
 
-        // Build payloads for upsert
         const payloads = [];
         for (const er of editRows) {
-          const attemptsParsed = er.inputs.map(inp => parseTimeToCentiseconds(inp.value));
-          // Build object: if id exists include id (so upsert updates), else include round_id and competitor_name etc.
+          const attemptsParsed = er.inputs.map(inp => inputToCS(inp.value));
           const obj = {
             round_id: roundRow.id,
             competitor_name: er.competitor_name,
@@ -1854,8 +1755,6 @@
         }
 
         try {
-          // Use upsert to insert or update rows. This assumes 'id' is primary key in round_results.
-          // If your table uses a different primary key, adjust accordingly.
           const { data, error } = await supabase
             .from('round_results')
             .upsert(payloads, { returning: 'representation' });
@@ -1864,7 +1763,6 @@
 
           status.style.color = '#0a7';
           status.textContent = 'Saved successfully.';
-          // After saving, navigate back to leaderboard view
           setTimeout(() => {
             navigate(`/${encodeURIComponent(slug(compRow.name))}/${encodeURIComponent(String(roundRow.event_id))}/${encodeURIComponent(String(roundRow.id))}`);
           }, 700);
@@ -1876,8 +1774,6 @@
           saveBtn.textContent = 'Save changes';
         }
       });
-
-      // done
       return;
     }
 
@@ -1886,24 +1782,18 @@
       const container = document.getElementById('leaderboard');
       if (!container) return;
 
-      // Prefer an explicit wrapper passed in; otherwise try to find the main wrapper created by renderLeaderboard
       let wrapper = opts.wrapper || container.querySelector('.leaderboard-wrapper') || container.querySelector('div');
       if (!wrapper) {
-        // fallback: use container itself
         wrapper = container;
       }
 
-      // Remove any previous button
       const existing = wrapper.querySelector('#btn-input-live-results');
       if (existing) existing.remove();
 
-      // Only show when logged in
       if (!isLoggedIn) return;
 
-      // Build slug for competition path (use slug() if available)
       const compPathSlug = (typeof slug === 'function') ? slug(String(compRowName || '')) : String(compRowName || '').replace(/\s+/g, '_');
 
-      // Create button
       const btn = document.createElement('button');
       btn.id = 'btn-input-live-results';
       btn.type = 'button';
@@ -1924,13 +1814,11 @@
 
       btn.addEventListener('click', (e) => {
         e.preventDefault();
-        // navigate to edit route: /COMP_SLUG/EVENT_ID/ROUND_ID/edit
         const path = `/${encodeURIComponent(compPathSlug)}/${encodeURIComponent(String(roundRow.event_id))}/${encodeURIComponent(String(roundRow.id))}/edit`;
         if (typeof navigate === 'function') navigate(path);
         else window.location.href = path;
       });
 
-      // Insert button at top of wrapper (before first child)
       if (wrapper.firstChild) wrapper.insertBefore(btn, wrapper.firstChild);
       else wrapper.appendChild(btn);
     }
@@ -1944,14 +1832,11 @@
         return;
       }
 
-      // Elements inside the competitor-list block (these exist in the provided HTML)
       const searchEl = document.getElementById('competitors-search');
       const wrap = document.getElementById('competitors-wrap');
 
-      // Show loading
       wrap.innerHTML = `<div style="color:#666">Loading...</div>`;
 
-      // Resolve competition row (same approach used elsewhere)
       const searchName = String(compSlug || '').replace(/_/g, ' ').trim();
       if (!searchName) {
         wrap.innerHTML = `<div style="color:#900">Invalid competition slug</div>`;
@@ -1975,7 +1860,6 @@
         console.warn('renderCompetitorList: competition lookup threw', e);
       }
 
-      // Fallback: fetch all and match slug
       if (!compRow) {
         try {
           const { data: allComps, error: allErr } = await supabase.from('competitions').select('id,name');
@@ -1995,7 +1879,6 @@
         return;
       }
 
-      // Fetch rounds for this competition
       let rounds = [];
       try {
         const { data: roundsData, error: roundsErr } = await supabase
@@ -2017,14 +1900,12 @@
         return;
       }
 
-      // Collect round ids
       const roundIds = rounds.map(r => r.id).filter(Boolean);
       if (!roundIds.length) {
         wrap.innerHTML = `<div style="color:#666">No rounds found for ${compRow.name}</div>`;
         return;
       }
 
-      // Fetch competitors from round_results where round_id IN roundIds
       let results = [];
       try {
         const { data, error } = await supabase
@@ -2040,7 +1921,6 @@
         return;
       }
 
-      // Deduplicate competitors by name + class + number
       const map = new Map();
       for (const r of results) {
         const name = (r.competitor_name || '').trim();
@@ -2054,7 +1934,6 @@
       }
 
       const competitors = Array.from(map.values()).sort((a, b) => {
-        // sort by name then class then number
         const na = a.name.toLowerCase(), nb = b.name.toLowerCase();
         if (na < nb) return -1;
         if (na > nb) return 1;
@@ -2063,7 +1942,6 @@
         return (a.number || '').localeCompare(b.number || '', undefined, { numeric: true });
       });
 
-      // Render list UI
       function renderList(list) {
         if (!list || !list.length) {
           wrap.innerHTML = `<div style="color:#666">No competitors found</div>`;
@@ -2096,13 +1974,12 @@
 
           row.addEventListener('click', (e) => {
             e.preventDefault();
-            const compPathSlug = compSlug; // already slug form
+            const compPathSlug = compSlug;
             const competitorSlug = slug(String(c.name || ''));
             const path = `/${encodeURIComponent(compPathSlug)}/competitors/${encodeURIComponent(competitorSlug)}`;
             navigate(path);
           });
 
-          // keyboard accessibility
           row.tabIndex = 0;
           row.addEventListener('keydown', (ev) => {
             if (ev.key === 'Enter' || ev.key === ' ') { ev.preventDefault(); row.click(); }
@@ -2111,15 +1988,12 @@
           frag.appendChild(row);
         });
 
-        // replace content
         wrap.innerHTML = '';
         wrap.appendChild(frag);
       }
 
-      // initial render
       renderList(competitors);
 
-      // Wire search input to filter by name/class/number
       function filterAndRender(q) {
         const ql = String(q || '').trim().toLowerCase();
         if (!ql) {
@@ -2135,7 +2009,6 @@
         renderList(filtered);
       }
 
-      // attach handlers
       searchEl.removeEventListener('input', searchEl._competitorInputHandler);
       searchEl._competitorInputHandler = (e) => filterAndRender(e.target.value);
       searchEl.addEventListener('input', searchEl._competitorInputHandler);
@@ -2164,7 +2037,6 @@
       loading.innerHTML = `<div style="color:#666">Loading...</div>`;
       container.appendChild(loading);
 
-      // Resolve competition row
       const searchName = String(compSlug || '').replace(/_/g, ' ').trim();
       let compRow = null;
       try {
@@ -2174,7 +2046,7 @@
           .ilike('name', `%${searchName}%`)
           .limit(1);
         if (!compErr && compData && compData.length) compRow = compData[0];
-      } catch (e) { /* ignore */ }
+      } catch (e) {}
 
       if (!compRow) {
         try {
@@ -2183,7 +2055,7 @@
           for (const c of (allComps || [])) {
             if (String(c.name).replace(/\s+/g, '_') === target) { compRow = c; break; }
           }
-        } catch (e) { /* ignore */ }
+        } catch (e) {}
       }
 
       if (!compRow) {
@@ -2191,7 +2063,6 @@
         return;
       }
 
-      // Fetch all rounds for this competition
       let rounds = [];
       try {
         const { data: roundsData, error: roundsErr } = await supabase
@@ -2208,7 +2079,6 @@
         return;
       }
 
-      // Fetch round_results for this competitor across all rounds (parallel)
       const roundFetchPromises = rounds.map(r =>
         supabase
           .from('round_results')
@@ -2246,7 +2116,6 @@
         return;
       }
 
-      // Group by event
       const byEvent = new Map();
       for (const item of roundResultsForCompetitor) {
         const ev = String(item.round.event_id || '').trim();
@@ -2254,13 +2123,11 @@
         byEvent.get(ev).push(item);
       }
 
-      // Order events by EVENT_CODE_TO_NAME then remaining
       const eventOrder = Object.keys(EVENT_CODE_TO_NAME);
       const orderedEventCodes = [];
       for (const code of eventOrder) if (byEvent.has(code)) orderedEventCodes.push(code);
       for (const code of byEvent.keys()) if (!orderedEventCodes.includes(code)) orderedEventCodes.push(code);
 
-      // Render page
       container.innerHTML = '';
       const pageWrap = document.createElement('div');
       pageWrap.style.maxWidth = '1100px';
@@ -2293,12 +2160,10 @@
         return n;
       }
 
-      // For each event
       for (const evCode of orderedEventCodes) {
         const evItems = byEvent.get(evCode) || [];
         if (!evItems.length) continue;
 
-        // Filter rounds: only include rounds where the competitor has at least one non-null attempt
         const filteredItems = evItems.filter(it => {
           const rr = it.row;
           const attempts = [
@@ -2331,7 +2196,6 @@
         evHeader.textContent = EVENT_CODE_TO_NAME[evCode] || evCode;
         pageWrap.appendChild(evHeader);
 
-        // Determine max attempt columns and whether to include average/mean columns
         let maxAttemptCount = 1;
         for (const it of roundsArray) {
           const fmt = (it.round.format || '').toLowerCase();
@@ -2360,7 +2224,6 @@
         table.style.borderCollapse = 'collapse';
         table.style.fontSize = '0.95rem';
 
-        // Header (omit attempts on mobile)
         const thead = document.createElement('thead');
         const headerRow = document.createElement('tr');
         const headers = [
@@ -2399,7 +2262,6 @@
           else if (fmt === 'bo2') attemptCount = 2;
           else if (fmt === 'bo1') attemptCount = 1;
 
-          // Fetch all results for ranking
           let allRows = [];
           try {
             const { data: allData, error: allErr } = await supabase
@@ -2432,10 +2294,8 @@
 
           const preparedAll = allRows.map(prepareRowForRanking);
 
-          // Count unfinished for this round
           const unfinishedCount = preparedAll.reduce((acc, x) => acc + (x.hasMissingAttempt ? 1 : 0), 0);
 
-          // Sort
           function getPrimarySecondaryForSort(obj) { return getPrimarySecondary(fmt, obj); }
           preparedAll.sort((a,b) => {
             const as = getPrimarySecondaryForSort(a), bs = getPrimarySecondaryForSort(b);
@@ -2460,14 +2320,13 @@
               const currentIndexRank = i + 1;
               if (i === 0) { lastRank = 1; lastPrimary = pPrimary; lastSecondary = pSecondary; }
               else {
-                if (pPrimary === lastPrimary && pSecondary === lastSecondary) { /* same rank */ }
+                if (pPrimary === lastPrimary && pSecondary === lastSecondary) {}
                 else { lastRank = currentIndexRank; lastPrimary = pPrimary; lastSecondary = pSecondary; }
               }
               if (p.id === preparedThis.id || String(p.name || '').trim() === String(preparedThis.name || '').trim()) { rank = lastRank; break; }
             }
           }
 
-          // Build row
           const tr = document.createElement('tr');
           tr.style.borderBottom = '1px solid #f0f0f0';
           tr.style.background = '#fff';
@@ -2510,14 +2369,13 @@
             tr.appendChild(meanTd);
           }
 
-          // mobile click opens modal with round details and link to round
           if (mobile) {
             tr.addEventListener('click', () => {
               const rankLine = rank === null ? '' : `#${rank}`;
               const rankRow = `<div style="font-size:18px;font-weight:700;margin-bottom:8px">${escapeHtml(rankLine)}</div>`
               const eventRow = `<div style="font-size:14px;font-weight:600;margin-bottom:8px">Event<br><div style="font-weight:normal;">${escapeHtml(EVENT_CODE_TO_NAME[evCode] || evCode)}</div></div>`;
               const roundRow = `<div style="font-size:14px;font-weight:600;margin-bottom:8px">Round<br><div style="font-weight:normal;">${escapeHtml(ROUND_CODE_TO_NAME[String(r.round_code)] || String(r.round_code))}</div></div>`;
-              const linkRow = `<div style="margin-bottom:8px"><a href="#" data-nav="/${slug(compRow.name)}/${evCode}/${String(r.id)}" style="color:#1976d2;text-decoration:underline">All results</a></div>`;
+              const linkRow = `<div style="margin-bottom:8px"><a href="#" data-nav="/${slug(compRow.name)}/${evCode}/${String(r.id)}" style="font-size:15px;color:#1976d2;text-decoration:underline">All results</a></div>`;
               const attemptsText = (preparedThis.attempts && preparedThis.attempts.length) ? preparedThis.attempts.map(a => (a === null || a === undefined || a === '') ? '' : csToDisplay(a)).filter(x=>x!=='').join(', ') : '';
               const attemptsRow = `<div style="font-size:14px;font-weight:600;margin-bottom:8px">Attempts<br><div style="font-weight:normal;">${escapeHtml(attemptsText || '')}</div></div>`;
               const avgText = (preparedThis.averageRaw === null || preparedThis.averageRaw === undefined) ? '' : (preparedThis.averageRaw === -1 ? 'DNF' : csToDisplay(preparedThis.averageRaw));
@@ -2563,7 +2421,6 @@
       loading.innerHTML = `<div style="color:#666">Loading...</div>`;
       container.appendChild(loading);
 
-      // Resolve competition row
       const searchName = String(compSlug || '').replace(/_/g, ' ').trim();
       let compRow = null;
       try {
@@ -2573,7 +2430,7 @@
           .ilike('name', `%${searchName}%`)
           .limit(1);
         if (!compErr && compData && compData.length) compRow = compData[0];
-      } catch (e) { /* ignore */ }
+      } catch (e) {}
 
       if (!compRow) {
         try {
@@ -2582,7 +2439,7 @@
           for (const c of (allComps || [])) {
             if (String(c.name).replace(/\s+/g, '_') === target) { compRow = c; break; }
           }
-        } catch (e) { /* ignore */ }
+        } catch (e) {}
       }
 
       if (!compRow) {
@@ -2590,7 +2447,6 @@
         return;
       }
 
-      // Fetch final rounds
       let finalRounds = [];
       try {
         const { data: roundsData, error: roundsErr } = await supabase
@@ -2658,7 +2514,6 @@
 
         if (!allRows.length) { undeterminedEvents.push(evCode); continue; }
 
-        // if any competitor has a missing attempt among required attempts -> undetermined
         let anyNullAttempt = false;
         for (const r of allRows) {
           for (let i = 1; i <= attemptCount; i++) {
@@ -2669,7 +2524,6 @@
         }
         if (anyNullAttempt) { undeterminedEvents.push(evCode); continue; }
 
-        // compute podium
         const prepared = allRows.map(r => {
           const attempts = [
             r.attempt1 ?? null,
@@ -2715,7 +2569,6 @@
         determinedPodiums.push({ eventCode: evCode, eventName: EVENT_CODE_TO_NAME[evCode] || evCode, format: fmt, attemptCount, podium, compRow, roundId: fr.id });
       }
 
-      // If no determined podiums at all
       if (!determinedPodiums.length) {
         const none = document.createElement('div');
         none.style.color = '#666';
@@ -2747,7 +2600,6 @@
         return;
       }
 
-      // If some undetermined events exist, show them
       if (undeterminedEvents.length) {
         const msg = document.createElement('div');
         msg.style.marginTop = '12px';
@@ -2768,7 +2620,6 @@
         pageWrap.appendChild(iconsWrap);
       }
 
-      // Render determined podiums
       for (const info of determinedPodiums) {
         const { eventCode, eventName, format, attemptCount, podium, compRow, roundId } = info;
 
@@ -2790,7 +2641,6 @@
         table.style.borderCollapse = 'collapse';
         table.style.fontSize = '0.95rem';
 
-        // Header (omit attempts on mobile)
         const thead = document.createElement('thead');
         const headerRow = document.createElement('tr');
         const headers = [
@@ -2830,7 +2680,6 @@
           tr.style.background = (i % 2 === 0) ? '#fff' : '#fbfcfe';
           tr.style.cursor = mobile ? 'pointer' : 'default';
 
-          // Rank cell highlighted green (bright, black text)
           const rankTd = document.createElement('td');
           rankTd.style.padding = '8px';
           rankTd.textContent = String(i + 1);
@@ -2839,7 +2688,6 @@
           rankTd.style.fontWeight = '400';
           tr.appendChild(rankTd);
 
-          // Name (on mobile plain text; link moved to modal)
           const nameTd = document.createElement('td');
           nameTd.style.padding = '8px';
           nameTd.textContent = r.name || '';
@@ -2881,13 +2729,12 @@
             tr.appendChild(meanTd);
           }
 
-          // mobile click opens modal with details and link to competitor results
           if (mobile) {
             tr.addEventListener('click', () => {
               const nameLine = `${r.name || ''} #${i+1}`;
               const nameRow = `<div style="font-size:18px;font-weight:700;margin-bottom:8px">${escapeHtml(nameLine)}</div>`;
-              const metaRow = `<div style="font-size:14px;font-weight:600;margin-bottom:8px">Name<br><div style="font-weight:normal;">${escapeHtml(r.name || '')} ${escapeHtml(r.class || '')}${r.number ? `(${escapeHtml(String(r.number))})` : ''}</div></div>`;
-              const linkRow = `<div style="margin-bottom:8px"><a href="#" data-nav="/${slug(compRow.name)}/competitors/${String(r.name || '').replace(/\s+/g, '_')}" style="color:#1976d2;text-decoration:underline">All results</a></div>`;
+              const metaRow = `<div style="font-size:14px;font-weight:600;margin-bottom:8px">Name<br><div style="font-weight:normal;">${escapeHtml(r.name || '')} (${escapeHtml(r.class || '')}${r.number ? `${escapeHtml(String(r.number))}` : ''})</div></div>`;
+              const linkRow = `<div style="margin-bottom:8px"><a href="#" data-nav="/${slug(compRow.name)}/competitors/${String(r.name || '').replace(/\s+/g, '_')}" style="font-size:15px;color:#1976d2;text-decoration:underline">All results</a></div>`;
               const attemptsText = (r.attempts && r.attempts.length) ? r.attempts.map(a => (a === null || a === undefined || a === '') ? '' : csToDisplay(a)).filter(x=>x!=='').join(', ') : '';
               const attemptsRow = `<div style="font-size:14px;font-weight:600;margin-bottom:8px">Attempts<br><div style="font-weight:normal;">${escapeHtml(attemptsText || '')}</div></div>`;
               const avgText = (format === 'ao5') ? (r.averageRaw === null || r.averageRaw === undefined ? '' : (r.averageRaw === -1 ? 'DNF' : csToDisplay(r.averageRaw))) : ((format === 'mo3' || format === 'bo3') ? (r.meanRaw === null || r.meanRaw === undefined ? '' : (r.meanRaw === -1 ? 'DNF' : csToDisplay(r.meanRaw))) : '');
@@ -2911,16 +2758,14 @@
       return;
     }
 
-    // DOM refs
     const overlay = document.getElementById('sidebar-overlay');
     const sidebar = document.getElementById('live-sidebar');
-    const btnOpen = document.getElementById('btn-open-sidebar'); // already present in header
+    const btnOpen = document.getElementById('btn-open-sidebar');
     const sbBack = document.getElementById('sb-back');
     const sbCompetitors = document.getElementById('sb-competitors');
     const sbPodiums = document.getElementById('sb-podiums');
     const sidebarEventsWrap = document.getElementById('sidebar-events');
 
-    // Utility: parse current route (reuse your getRoute if present)
     function parsePathForSidebar(path) {
       const p = (path || '/').replace(/^\//, '').replace(/\/$/, '');
       if (!p) return { view: 'main', compSlug: null };
@@ -2929,15 +2774,12 @@
       return { compSlug };
     }
 
-    // Open / close
     function openSidebar() {
       document.body.classList.add('sidebar-open');
       sidebar.setAttribute('aria-hidden', 'false');
       overlay.setAttribute('aria-hidden', 'false');
-      // populate events for current competition
       const { compSlug } = parsePathForSidebar(location.pathname);
       if (compSlug) populateSidebar(compSlug).catch(()=>{});
-      // focus first button for accessibility
       setTimeout(() => {
         const firstBtn = sidebar.querySelector('.ev-head');
         if (firstBtn) firstBtn.focus();
@@ -2950,10 +2792,8 @@
       overlay.setAttribute('aria-hidden', 'true');
     }
 
-    // Close when clicking overlay
     overlay.addEventListener('click', () => closeSidebar());
 
-    // Wire header menu button
     if (btnOpen) {
       btnOpen.addEventListener('click', (e) => {
         e.preventDefault();
@@ -2961,7 +2801,6 @@
       });
     }
 
-    // Sidebar top buttons behavior
     sbBack.addEventListener('click', () => {
       closeSidebar();
       navigate('/');
@@ -2983,16 +2822,13 @@
       navigate(path);
     });
 
-    // Populate sidebar: fetch rounds grouped by event for a competition slug
     async function populateSidebar(compSlug) {
       if (!supabase) {
         sidebarEventsWrap.innerHTML = '<div style="color:#900">Realtime unavailable</div>';
         return;
       }
-
       sidebarEventsWrap.innerHTML = '<div style="color:#666">Loading...</div>';
 
-      // Resolve competition row (similar logic to other functions)
       const searchName = String(compSlug || '').replace(/_/g, ' ').trim();
       let compRow = null;
       try {
@@ -3002,17 +2838,16 @@
           .ilike('name', `%${searchName}%`)
           .limit(1);
         if (!compErr && compData && compData.length) compRow = compData[0];
-      } catch (e) { /* ignore */ }
+      } catch (e) {}
 
       if (!compRow) {
-        // fallback: fetch all and match slug
         try {
           const { data: allComps } = await supabase.from('competitions').select('id,name');
           const target = String(searchName).replace(/\s+/g, '_');
           for (const c of (allComps || [])) {
             if (String(c.name).replace(/\s+/g, '_') === target) { compRow = c; break; }
           }
-        } catch (e) { /* ignore */ }
+        } catch (e) {}
       }
 
       if (!compRow) {
@@ -3020,7 +2855,6 @@
         return;
       }
 
-      // Fetch rounds for this competition
       let rounds = [];
       try {
         const { data: roundsData, error: roundsErr } = await supabase
@@ -3037,7 +2871,6 @@
         return;
       }
 
-      // Group rounds by event_id
       const eventsMap = new Map();
       for (const r of rounds) {
         const ev = String(r.event_id || '').trim();
@@ -3045,7 +2878,6 @@
         eventsMap.get(ev).push(r);
       }
 
-      // Render events
       sidebarEventsWrap.innerHTML = '';
       if (!eventsMap.size) {
         sidebarEventsWrap.innerHTML = '<div style="color:#666">No events found</div>';
@@ -3077,12 +2909,11 @@
 
         const title = document.createElement('div');
         title.className = 'ev-title';
-        title.textContent = evName; // show event name instead of code
+        title.textContent = evName;
 
         head.appendChild(icon);
         head.appendChild(title);
 
-        // Round list (hidden by default)
         const roundList = document.createElement('div');
         roundList.className = 'round-list';
 
@@ -3091,12 +2922,11 @@
           const ri = document.createElement('div');
           ri.className = 'round-item';
           ri.tabIndex = 0;
-          ri.textContent = roundLabel; // show round name instead of code
+          ri.textContent = roundLabel;
           ri.addEventListener('click', (e) => {
             e.stopPropagation();
             closeSidebar();
-            const compPathSlug = compSlug; // already slug form
-            const path = `/${encodeURIComponent(compPathSlug)}/${encodeURIComponent(String(evCode))}/${encodeURIComponent(String(r.id))}`;
+            const path = `/${encodeURIComponent(compSlug)}/${encodeURIComponent(String(evCode))}/${encodeURIComponent(String(r.id))}`;
             navigate(path);
           });
           ri.addEventListener('keydown', (ev) => {
@@ -3105,7 +2935,6 @@
           roundList.appendChild(ri);
         });
 
-        // Toggle open/close rounds
         head.addEventListener('click', () => {
           const isOpen = evBlock.classList.toggle('open');
           head.setAttribute('aria-expanded', String(isOpen));
@@ -3121,7 +2950,6 @@
     }
 
     function attachRouteHooks() {
-
       if (typeof window.navigate === 'function' && !window.__sidebar_wrapped_navigate) {
         const orig = window.navigate;
         window.navigate = async function (path, opts) {
@@ -3152,39 +2980,31 @@
 
       const parts = raw.split('/').map(p => decodeURIComponent(p || ''));
 
-      // /COMPETITION_NAME
       if (parts.length === 1) {
         const compSlug = parts[0];
-        // special reserved names
         if (compSlug.toLowerCase() === 'favicon.ico') return { view: 'main' };
         return { view: 'competition-main-page', compSlug };
       }
 
-      // /COMPETITION_NAME/competitors
       if (parts.length === 2 && parts[1].toLowerCase() === 'competitors') {
         return { view: 'competitor-list', compSlug: parts[0] };
       }
 
-      // /COMPETITION_NAME/competitors/COMPETITOR_NAME
       if (parts.length === 3 && parts[1].toLowerCase() === 'competitors') {
         return { view: 'competitor-results', compSlug: parts[0], competitorName: parts[2] };
       }
 
-      // /COMPETITION_NAME/podiums
       if (parts.length === 2 && parts[1].toLowerCase() === 'podiums') {
         return { view: 'podiums', compSlug: parts[0] };
       }
 
-      // /COMPETITION_NAME/EVENT_ID/ROUND_ID  (leaderboard)
       if (parts.length >= 3) {
         return { view: 'leaderboard', compSlug: parts[0], eventId: parts[1], roundId: parts[2] };
       }
 
-      // fallback
       return { view: 'main' };
     }
 
-    // Updated navigate to support /login and /:comp/:event/:round/edit routes
     function navigate(path, opts = {}) {
       document.getElementById('btn-open-sidebar').style.display = (path === '/') ? 'none' : '';
 
@@ -3193,25 +3013,20 @@
       if (replace) history.replaceState({}, '', normalized);
       else history.pushState({}, '', normalized);
 
-      // parse route
       const parts = normalized.split('/').filter(Boolean);
 
-      // root -> main
       if (parts.length === 0) {
         showView('main');
         return;
       }
 
-      // /login
       if (parts.length === 1 && parts[0] === 'login') {
         showView('login');
         return;
       }
 
-      // /:compSlug
       const compSlug = parts[0];
 
-      // /:compSlug/competitors or /:compSlug/competitors/:competitorName
       if (parts.length >= 2 && parts[1] === 'competitors') {
         if (parts.length === 2) {
           showView('competitor-list', { compSlug });
@@ -3223,22 +3038,18 @@
         }
       }
 
-      // /:compSlug/podiums
       if (parts.length === 2 && parts[1] === 'podiums') {
         showView('podiums', { compSlug });
         return;
       }
 
-      // /:compSlug/:eventId/:roundId/edit  (edit mode)
       if (parts.length >= 4 && parts[3] === 'edit') {
         const eventId = parts[1];
         const roundId = parts[2];
-        // show edit view and render editor
         showView('edit', { compSlug, eventId, roundId });
         return;
       }
 
-      // /:compSlug/:eventId/:roundId (leaderboard)
       if (parts.length >= 3) {
         const eventId = parts[1];
         const roundId = parts[2];
@@ -3246,7 +3057,6 @@
         return;
       }
 
-      // fallback to competition main page
       showView('competition-main-page', { compSlug });
     }
 
@@ -3257,7 +3067,6 @@
       document.getElementById('btn-signout-top').style.display = (isMobileView()) ? 'none' : isLoggedIn ? '' : 'none';
     }
 
-    // Updated showView to include login and edit views
     function showView(id, params = {}) {
       updateMobileUI();
       
@@ -3272,13 +3081,11 @@
         'edit': document.getElementById('edit-round')
       };
 
-      // hide all views
       Object.values(views).forEach(el => {
         if (!el) return;
         el.style.display = 'none';
       });
 
-      // show requested view
       const target = views[id];
       if (!target) {
         console.warn('showView: unknown view id', id);
@@ -3286,7 +3093,6 @@
       }
       target.style.display = '';
 
-      // optional small UI updates per view
       if (id === 'competition-main-page') {
         const compSlug = params.compSlug || null;
         renderCompetitionMainPage(compSlug).catch(()=>{});
@@ -3333,13 +3139,11 @@
         return;
       }
 
-      // default: if 'main' show competitions list
       if (id === 'main') {
         fetchCompetitions().catch(()=>{});
       }
     }
 
-    // handle back/forward
     window.addEventListener('popstate', () => {
       const route = getRoute(location.pathname);
       navigate(location.pathname, { replace: true });
@@ -3349,13 +3153,11 @@
       const el = ev.target.closest && ev.target.closest('.comp-item');
       if (!el) return;
       ev.preventDefault();
-      // prefer data-slug attribute if present
       const ds = el.getAttribute && el.getAttribute('data-slug');
       if (ds) {
         navigate('/' + encodeURIComponent(ds));
         return;
       }
-      // otherwise find the name text inside
       const nameEl = el.querySelector && (el.querySelector('.comp-name') || el.querySelector('div'));
       const compName = nameEl ? nameEl.textContent.trim() : null;
       if (!compName) return;
@@ -3379,7 +3181,6 @@
           const eventId = route.eventId;
           const roundId = route.roundId;
 
-          // Silent update: do not show loading or clear existing DOM; do not re-subscribe
           await renderLeaderboard({ compSlug, eventId, roundId, silent: true }).catch((err) => {
             console.warn('leaderboard silent poll error', err);
           });
@@ -3393,7 +3194,6 @@
 
       function startLeaderboardPollingFallback() {
         if (typeof __leaderboardPollInterval !== 'undefined' && __leaderboardPollInterval) return;
-        // immediate silent poll then every 15s
         pollOnce();
         __leaderboardPollInterval = setInterval(pollOnce, 15000);
       }
@@ -3404,7 +3204,7 @@
             clearInterval(__leaderboardPollInterval);
             __leaderboardPollInterval = null;
           }
-        } catch (e) { /* ignore */ }
+        } catch (e) {}
       }
 
       if (document.readyState === 'loading') {
@@ -3419,14 +3219,13 @@
           if (route && route.view === 'leaderboard') {
             pollOnce();
           }
-        } catch (e) { /* ignore */ }
+        } catch (e) {}
       });
 
       window.addEventListener('beforeunload', () => {
         stopLeaderboardPollingFallback();
       });
 
-      // expose controls for debugging
       window.startLeaderboardPollingFallback = startLeaderboardPollingFallback;
       window.stopLeaderboardPollingFallback = stopLeaderboardPollingFallback;
     })();

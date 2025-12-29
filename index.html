@@ -9,11 +9,9 @@
     href="/images/favicon.png"
   />
 
-  <!-- PNG favicon for modern browsers -->
   <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon.png">
   <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon.png">
 
-  <!-- Apple Touch Icon (for iPhone/iPad home screen) -->
   <link rel="apple-touch-icon" href="/images/favicon.png">
   <link rel="apple-touch-icon" sizes="180x180" href="/images/favicon.png">
 
@@ -92,7 +90,7 @@
       z-index: 1000;
     }
 
-    #main-header #club-name {
+    #main-header #header-text {
       font-size: 28px;
       color: white;
     }
@@ -194,7 +192,7 @@
       </div>
     </div>
 
-    <h1 id="club-name">LSC Cubing Club Live</h1>
+    <h1 id="header-text">LSC Cubing Club Live</h1>
 
     <div style ="display:flex;align-items:center;gap:12px;">
       <img src="/images/login_button.png" alt="Login" id="btn-login-top">
@@ -317,13 +315,21 @@
 
     let competitionsCache = [];
 
-    async function fetchCompetitions() {
-      document.getElementById('club-name').textContent = 'LSC Cubing Club Live';
+    async function fetchCompetitions(daysBack = 90) {
+      document.getElementById('header-text').textContent = 'LSC Cubing Club Live';
+      document.title = 'LSC Cubing Club Live';
 
       listEl.innerHTML = '<div style="color:#666">Loading competitions...</div>';
+
+      // Calculate cutoff date
+      const now = new Date();
+      const cutoff = new Date(now.getTime() - daysBack * 24 * 60 * 60 * 1000);
+      const cutoffISO = cutoff.toISOString().split('T')[0]; // format as YYYY-MM-DD
+
       const { data, error } = await supabase
         .from('competitions')
         .select('id, name, date, venue, locked, created_at')
+        .gte('date', cutoffISO)
         .order('date', { ascending: false })
         .order('name', { ascending: true });
 
@@ -347,7 +353,8 @@
     }
 
     function renderCompetitions(list) {
-      document.getElementById('club-name').textContent = 'LSC Cubing Club Live';
+      document.getElementById('header-text').textContent = 'LSC Cubing Club Live';
+      document.title = 'LSC Cubing Club Live';
 
       if (!Array.isArray(list) || list.length === 0) {
         listEl.innerHTML = '<div style="color:#666">No competitions found</div>';
@@ -412,7 +419,8 @@
     });
 
     async function renderCompetitionMainPage(compSlug) {
-      document.getElementById('club-name').textContent = unslug(compSlug);
+      document.getElementById('header-text').textContent = unslug(compSlug);
+      document.title = `${unslug(compSlug)} - Live`;
 
       const container = document.getElementById('competition-main-page');
 
@@ -1041,7 +1049,8 @@
       const { compSlug, eventId, roundId, silent = false } = params || {};
 
       try {
-        document.getElementById('club-name').textContent = unslug(compSlug);
+        document.getElementById('header-text').textContent = unslug(compSlug);
+        document.title = `${unslug(compSlug)} - Live`;
       } catch (e) {}
 
       const container = document.getElementById('leaderboard');
@@ -1472,7 +1481,8 @@
     }
 
     async function renderEditRound(compSlug, eventId, roundId) {
-      document.getElementById('club-name').textContent = unslug(compSlug);
+      document.getElementById('header-text').textContent = unslug(compSlug);
+      document.title = `Editing ${EVENT_CODE_TO_NAME[String(eventId)]} - ${ROUND_CODE_TO_NAME[String(roundId)]}`;
 
       const container = document.getElementById('edit-round');
       if (!container) {
@@ -1824,7 +1834,8 @@
     }
 
     async function renderCompetitorList(compSlug) {
-      document.getElementById('club-name').textContent = unslug(compSlug);
+      document.getElementById('header-text').textContent = unslug(compSlug);
+      document.title = `${unslug(compSlug)} - Competitors`;
 
       const container = document.getElementById('competitor-list');
       if (!container) {
@@ -2016,7 +2027,8 @@
     }
 
     async function renderCompetitorResults(compSlug, competitorName) {
-      document.getElementById('club-name').textContent = unslug(compSlug);
+      document.getElementById('header-text').textContent = unslug(compSlug);
+      document.title = `${unslug(compSlug)} - ${unslug(competitorName)}`;
 
       const container = document.getElementById('competitor-results');
       if (!container) {
@@ -2400,7 +2412,8 @@
     }
 
     async function renderPodiums(compSlug) {
-      document.getElementById('club-name').textContent = unslug(compSlug);
+      document.getElementById('header-text').textContent = unslug(compSlug);
+      document.title = `${unslug(compSlug)} - Podiums`;
 
       const container = document.getElementById('podiums');
       if (!container) {
@@ -3061,7 +3074,7 @@
     }
 
     function updateMobileUI() {
-      document.getElementById('club-name').style.fontSize = isMobileView() ? '5.2vw' : '28px';
+      document.getElementById('header-text').style.fontSize = isMobileView() ? '5.2vw' : '28px';
       document.getElementById('club-logo').style.display = isMobileView() ? 'none' : '';
       document.getElementById('btn-login-top').style.display = (isMobileView()) ? 'none' : isLoggedIn ? 'none' : '';
       document.getElementById('btn-signout-top').style.display = (isMobileView()) ? 'none' : isLoggedIn ? '' : 'none';
